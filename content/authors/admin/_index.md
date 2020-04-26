@@ -7,9 +7,10 @@ email: ""
 interests:
 - R
 - Survey Design
-- Data Analysis
+- Data Analysis & Visualization
 - Coffee
 - Death Metal
+- Vegan Baking
 social:
 - icon: envelope
   icon_pack: fas
