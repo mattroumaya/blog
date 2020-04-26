@@ -28,5 +28,5 @@ user_groups:
 - Visitors
 ---
 
-I'm a Data Analyst at the National Board of Medical Examiners. In my spare time, I am a freelance analyst of sorts, specializing in survey design & analysis, data cleaning with R, and ad-hoc data requests of all types. I am looking to connect with fellow R users to collaborate, learn, and work together in the survey analysis space, and am always open to exploring a freelance opportunity. I live in Philadelphia with my amazing wife Molly and our two cats, Mango and Phil.
+I'm a Data Analyst at the National Board of Medical Examiners. In my spare time, I'm a freelance analyst, specializing in survey design & analysis, data cleaning and visualization with R, and ad-hoc data requests of all types. I'm looking to connect with fellow R users to collaborate, learn, and work together, and am always open to exploring a freelance opportunity. I live in Philadelphia with my amazing wife Molly and our two cats, Mango and Phil.
 
