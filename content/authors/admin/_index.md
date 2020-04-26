@@ -3,46 +3,29 @@ authors:
 - admin
 bio: My research interests include distributed robotics, mobile computing and programmable
   matter.
-education:
-  courses:
-  - course: PhD in Artificial Intelligence
-    institution: Stanford University
-    year: 2012
-  - course: MEng in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2009
-  - course: BSc in Artificial Intelligence
-    institution: Massachusetts Institute of Technology
-    year: 2008
 email: ""
 interests:
-- Artificial Intelligence
-- Computational Linguistics
-- Information Retrieval
-organizations:
-- name: Stanford University
-  url: ""
-role: Professor of Artificial Intelligence
+- R
+- Survey Design
+- Data Analysis
+- Coffee
+- Death Metal
 social:
 - icon: envelope
   icon_pack: fas
   link: '#contact'
 - icon: twitter
   icon_pack: fab
-  link: https://twitter.com/GeorgeCushen
-- icon: google-scholar
-  icon_pack: ai
-  link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
+  link: https://twitter.com/bigantsaresmall
 - icon: github
   icon_pack: fab
-  link: https://github.com/gcushen
+  link: https://github.com/mattroumaya
 superuser: true
-title: Nelson Bighetti
+title: Matt Roumaya
 user_groups:
 - Researchers
 - Visitors
 ---
 
-Nelson Bighetti is a professor of artificial intelligence at the Stanford AI Lab. His research interests include distributed robotics, mobile computing and programmable matter. He leads the Robotic Neurobiology group, which develops self-reconfiguring robots, systems of self-organizing robots, and mobile sensor networks.
+I'm a Data Analyst at the National Board of Medical Examiners. In my spare time, I am a freelance analyst of sorts, specializing in survey design & analysis, data cleaning with R, and ad-hoc data requests of all types. I am looking to connect with fellow R users to collaborate, learn, and work together in the survey analysis space, and am always open to exploring a freelance opportunity. I live in Philadelphia with my amazing wife Molly and our two cats, Mango and Phil
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed neque elit, tristique placerat feugiat ac, facilisis vitae arcu. Proin eget egestas augue. Praesent ut sem nec arcu pellentesque aliquet. Duis dapibus diam vel metus tempus vulputate.
