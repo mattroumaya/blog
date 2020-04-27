@@ -1,0 +1,110 @@
+---
+title: Rummy 5 Million
+author: Matt Roumaya
+date: '2020-04-26'
+slug: rummy-5-million
+categories:
+  - R
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-04-26T18:36:48-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r setup, echo = FALSE,warning=FALSE}
+knitr::opts_chunk$set(message=FALSE, fig.width = 8, fig.height = 6)
+library(emo)
+
+```
+
+In these *unprecedented times*, my wife Molly and I have been playing infinite rounds of Rummy 
+`r emo::ji("spade_suit")` `r emo::ji("heart_suit")` `r emo::ji("club_suit")` `r emo::ji("diamond_suit")`. Since I don't have any high-quality posts yet (and probably won't any time soon`r emo::ji("poop")`), I'm just going to graph our endless rounds until we're out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so cute that I couldn't resist stealing it `r emo::ji("smiley_cat")`! 
+
+I spent all weekend getting up and running with the deadly [blogdown](https://bookdown.org/yihui/blogdown/) + [Hugo](https://gohugo.io/) combo, and I'm ready to share my trivial data insights with the world! 
+
+Molly and I love board games like [7 Wonders Duel](https://boardgamegeek.com/boardgame/173346/7-wonders-duel/), [Codenames](https://boardgamegeek.com/boardgame/178900/codenames), and some good ol' [Catan](https://boardgamegeek.com/boardgame/13/catan) when we can round up... anyone else...but we quickly came to terms that we'll be riding out the [stay at home order](https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/) for quite a while.
+
+**Let's take a first glimpse at our scorecard data:**
+
+![Messy Data With Competitive Annotation](/post/2020-04-26-rummy-5-million_files/IMG-2914.jpg)
+
+While the raw data explicitly shows that I'm a loser, we'll see if that's actually the case after some cleaning and viz.
+
+**Here's a `tribble` of our cumulative rounds (last updated: `r date()`)**
+
+```{r rummy-data}
+library(tidyverse)
+
+rummy <- tribble(
+  ~Round,~Molly,~Matt,
+  1,159,167,
+  2,90,100,
+  3,55,139,
+  4,91,-25,
+  5,98,44,
+  6,97,64,
+  7,68,68,
+  8,102,90,
+  9,53,85,
+  10,-21,134,
+  11,88,144,
+  12,-23,106,
+  13,63,111,
+  14,91,128,
+  15,108,79,
+  16,88,76,
+  17,100,146,
+  18,124,-10,
+  19,66,41,
+  20,77,105,
+  21,38,95,
+  22,91,13,
+  23,92,117,
+  24,65,101,
+  25,88,142
+)
+```
+
+To build some suspense before we get to the cumulative sum and see who the real *loser* `r emo::ji("sob")` is, we actually need to utilize one of my new favorite functions `pivot_longer()`, which will help us visualize our rounds.
+
+```{r pivot rummy}
+rummy_wider <- rummy %>%
+  pivot_longer(cols = c("Molly","Matt"), values_to = "Score") %>%
+  rename(Player = name)
+
+```
+
+**Now our data looks like this:**
+
+```{r rummy wider, echo = FALSE}
+library(kableExtra)
+kable(head(rummy_wider))
+```
+
+
+**Nice! Let's have a first look at how we stack up round to round, and then I'll conclude this post (for now), since it's after 2am.**
+
+```{r line plot}
+
+rummy_wider %>%
+  group_by(Player) %>%
+  ggplot(aes(x=Round,y=Score,group=Player,color=Player)) +
+  geom_line(size=1) +
+  geom_text(aes(label=Score)) +
+  scale_color_manual(values=c("084552", "#f29090")) +
+  theme_minimal() +
+  labs(title = "...And in That Moment, I swear That We Were (Playing) Infinite (Rummy)",
+          subtitle = "Endless Rummy in the Age of Quarantine") 
+
+
+
+
+```
+

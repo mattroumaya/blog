@@ -1,0 +1,162 @@
+---
+title: Rummy 5 Million
+author: Matt Roumaya
+date: '2020-04-26'
+slug: rummy-5-million
+categories:
+  - R
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-04-26T18:36:48-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p>In these <em>unprecedented times</em>, my wife Molly and I have been playing infinite rounds of Rummy
+♠️ ♥️ ♣️ ♦️. Since I don’t have any high-quality posts yet (and probably won’t any time soon💩), I’m just going to graph our endless rounds until we’re out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so cute that I couldn’t resist stealing it 😺!</p>
+<p>I spent all weekend getting up and running with the deadly <a href="https://bookdown.org/yihui/blogdown/">blogdown</a> + <a href="https://gohugo.io/">Hugo</a> combo, and I’m ready to share my trivial data insights with the world!</p>
+<p>Molly and I love board games like <a href="https://boardgamegeek.com/boardgame/173346/7-wonders-duel/">7 Wonders Duel</a>, <a href="https://boardgamegeek.com/boardgame/178900/codenames">Codenames</a>, and some good ol’ <a href="https://boardgamegeek.com/boardgame/13/catan">Catan</a> when we can round up… anyone else…but we quickly came to terms that we’ll be riding out the <a href="https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/">stay at home order</a> for quite a while.</p>
+<p><strong>Let’s take a first glimpse at our scorecard data:</strong></p>
+<div class="figure">
+<img src="/post/2020-04-26-rummy-5-million_files/IMG-2914.jpg" alt="Messy Data With Competitive Annotation" />
+<p class="caption">Messy Data With Competitive Annotation</p>
+</div>
+<p>While the raw data explicitly shows that I’m a loser, we’ll see if that’s actually the case after some cleaning and viz.</p>
+<p><strong>Here’s a <code>tribble</code> of our cumulative rounds (last updated: Mon Apr 27 02:33:18 2020)</strong></p>
+<pre class="r"><code>library(tidyverse)
+
+rummy &lt;- tribble(
+  ~Round,~Molly,~Matt,
+  1,159,167,
+  2,90,100,
+  3,55,139,
+  4,91,-25,
+  5,98,44,
+  6,97,64,
+  7,68,68,
+  8,102,90,
+  9,53,85,
+  10,-21,134,
+  11,88,144,
+  12,-23,106,
+  13,63,111,
+  14,91,128,
+  15,108,79,
+  16,88,76,
+  17,100,146,
+  18,124,-10,
+  19,66,41,
+  20,77,105,
+  21,38,95,
+  22,91,13,
+  23,92,117,
+  24,65,101,
+  25,88,142
+)</code></pre>
+<p>To build some suspense before we get to the cumulative sum and see who the real <em>loser</em> 😭 is, we actually need to utilize one of my new favorite functions <code>pivot_longer()</code>, which will help us visualize our rounds.</p>
+<pre class="r"><code>rummy_wider &lt;- rummy %&gt;%
+  pivot_longer(cols = c(&quot;Molly&quot;,&quot;Matt&quot;), values_to = &quot;Score&quot;) %&gt;%
+  rename(Player = name)</code></pre>
+<p><strong>Now our data looks like this:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+Round
+</th>
+<th style="text-align:left;">
+Player
+</th>
+<th style="text-align:right;">
+Score
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+Molly
+</td>
+<td style="text-align:right;">
+159
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+Matt
+</td>
+<td style="text-align:right;">
+167
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Molly
+</td>
+<td style="text-align:right;">
+90
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Matt
+</td>
+<td style="text-align:right;">
+100
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+Molly
+</td>
+<td style="text-align:right;">
+55
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+Matt
+</td>
+<td style="text-align:right;">
+139
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nice! Let’s have a first look at how we stack up round to round, and then I’ll conclude this post (for now), since it’s after 2am.</strong></p>
+<pre class="r"><code>rummy_wider %&gt;%
+  group_by(Player) %&gt;%
+  ggplot(aes(x=Round,y=Score,group=Player,color=Player)) +
+  geom_line(size=1) +
+  geom_text(aes(label=Score)) +
+  scale_color_manual(values=c(&quot;084552&quot;, &quot;#f29090&quot;)) +
+  theme_minimal() +
+  labs(title = &quot;...And in That Moment, I swear That We Were (Playing) Infinite (Rummy)&quot;,
+          subtitle = &quot;Endless Rummy in the Age of Quarantine&quot;) </code></pre>
+<p><img src="/post/2020-04-26-rummy-5-million_files/figure-html/line%20plot-1.png" width="768" /></p>
