@@ -108,3 +108,11 @@ rummy_wider %>%
 
 ```
 
+
+And also, this post and my website was *conceptualized* on 4/26, which is Phil and Mango's 5th birthday!! `r emo::ji("alien")`
+
+`r emo::ji("birthday")``r emo::ji("balloon")``r emo::ji("gift")`**HAPPY BIRTHDAY TO MANGO AND PHIL!**`r emo::ji("birthday")``r emo::ji("balloon")``r emo::ji("gift")`
+
+![Baby Brothers](/post/2020-04-26-rummy-5-million_files/babies.jpg)
+
+![Bigger Baby Brothers](/post/2020-04-26-rummy-5-million_files/bigger babies.jpg)
