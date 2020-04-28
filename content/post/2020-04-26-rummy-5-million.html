@@ -1,8 +1,8 @@
 ---
-title: Rummy 5 Million
+title: Infinite Rummy in the Age of Quarantine
 author: Matt Roumaya
 date: '2020-04-26'
-slug: rummy-5-million
+slug: infinite-rummy-in-the-age-of-quarantine
 categories:
   - R
 tags: []
@@ -21,16 +21,16 @@ projects: []
 
 
 <p>In these <em>unprecedented times</em>, my wife Molly and I have been playing infinite rounds of Rummy
-♠️ ♥️ ♣️ ♦️. Since I don’t have any high-quality posts yet (and probably won’t any time soon💩), I’m just going to graph our endless rounds until we’re out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so cute that I couldn’t resist stealing it 😺!</p>
+♠️ ♥️ ♣️ ♦️. Since I don’t have any high-quality posts yet (and probably won’t any time soon💩), I’m just going to graph our endless rounds until we’re out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so fun and cute that I had to steal it 😺!</p>
 <p>I spent all weekend getting up and running with the deadly <a href="https://bookdown.org/yihui/blogdown/">blogdown</a> + <a href="https://gohugo.io/">Hugo</a> combo, and I’m ready to share my trivial data insights with the world!</p>
-<p>Molly and I love board games like <a href="https://boardgamegeek.com/boardgame/173346/7-wonders-duel/">7 Wonders Duel</a>, <a href="https://boardgamegeek.com/boardgame/178900/codenames">Codenames</a>, and some good ol’ <a href="https://boardgamegeek.com/boardgame/13/catan">Catan</a> when we can round up… anyone else…but we quickly came to terms that we’ll be riding out the <a href="https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/">stay at home order</a> for quite a while.</p>
+<p>Molly and I love board games like <a href="https://boardgamegeek.com/boardgame/173346/7-wonders-duel/">7 Wonders Duel</a>, <a href="https://boardgamegeek.com/boardgame/178900/codenames">Codenames</a>, and some good ol’ <a href="https://boardgamegeek.com/boardgame/13/catan">Catan</a> when we can round up… anyone else…but we have quickly come to terms that we’ll be riding out the <a href="https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/">stay at home order</a> for quite a while.</p>
 <p><strong>Let’s take a first glimpse at our scorecard data:</strong></p>
 <div class="figure">
 <img src="/post/2020-04-26-rummy-5-million_files/IMG-2914.jpg" alt="Messy Data With Competitive Annotation" />
 <p class="caption">Messy Data With Competitive Annotation</p>
 </div>
 <p>While the raw data explicitly shows that I’m a loser, we’ll see if that’s actually the case after some cleaning and viz.</p>
-<p><strong>Here’s a <code>tribble</code> of our cumulative rounds (last updated: Mon Apr 27 03:19:55 2020)</strong></p>
+<p><strong>Here’s a <code>tribble</code> of our cumulative rounds (last updated: Mon Apr 27 20:55:47 2020)</strong></p>
 <pre class="r"><code>library(tidyverse)
 
 rummy &lt;- tribble(
@@ -149,18 +149,40 @@ Matt
 </tr>
 </tbody>
 </table>
-<p><strong>Nice! Let’s have a first look at how we stack up round to round, and then I’ll conclude this post (for now), since it’s after 2am.</strong></p>
+<p><strong>Nice! Let’s have a first look at how we stack up round-to-round:</strong></p>
 <pre class="r"><code>rummy_wider %&gt;%
   group_by(Player) %&gt;%
   ggplot(aes(x=Round,y=Score,group=Player,color=Player)) +
   geom_line(size=1) +
   geom_text(aes(label=Score)) +
-  scale_color_manual(values=c(&quot;084552&quot;, &quot;#f29090&quot;)) +
+  scale_color_manual(values=c(&quot;#084552&quot;, &quot;#f29090&quot;)) +
   theme_minimal() +
   labs(title = &quot;...And in That Moment, I swear That We Were (Playing) Infinite (Rummy)&quot;,
           subtitle = &quot;Endless Rummy in the Age of Quarantine&quot;) </code></pre>
 <p><img src="/post/2020-04-26-rummy-5-million_files/figure-html/line%20plot-1.png" width="768" /></p>
-<p>And also, this post and my website was <em>conceptualized</em> on 4/26, which is Phil and Mango’s 5th birthday!! 👽</p>
+<p>Last night during a bout of insomnia, I came across the <a href="https://github.com/davidsjoberg/ggbump">new CRAN release for <code>ggbump</code></a> and had to give it a shot, and am pretty excited to find some more uses for it. This definitely isn’t the best visualization I’ve made, and would have been more interesting with a third player (maybe the <a href="https://www.huffpost.com/entry/throuple-house-hunters-hgtv_n_5e46d120c5b64d860fca24df">thruple from HGTV’s <strong>House Hunters</strong>?</a>)</p>
+<p>Anyway, to work with <code>ggbump</code>, we just need to rank each round. We did tie during round 7, so <code>ties.method = random</code> will make the decision for us.</p>
+<pre class="r"><code>library(ggbump)
+library(cowplot)
+
+rummy_bump &lt;- rummy_wider %&gt;%
+  group_by(Round) %&gt;%
+  mutate(rank = rank(Score,ties.method = &quot;random&quot;)) %&gt;%
+  ungroup()
+
+ggplot(rummy_bump, aes(Round,rank,color = Player)) +
+  geom_point(size = 7) +
+  geom_bump(size = 3, smooth = 6)+
+  scale_x_continuous(breaks = seq(1,25,1)) +
+  theme_minimal_grid(font_size = 14, line_size = 0)+
+  theme(panel.grid.major = element_blank()) +
+  scale_y_continuous(breaks = c(1,2), labels = c(&quot;1&quot; = &quot;Loser&quot;, &quot;2&quot; = &quot;Winner&quot;)) +
+  labs(y = &quot;&quot;) +
+  scale_color_manual(values = c(&quot;#084552&quot;,&quot;#F29090&quot;))</code></pre>
+<p><img src="/post/2020-04-26-rummy-5-million_files/figure-html/ggbump%20clean-1.png" width="864" /></p>
+<p>I know I said it’s not the best visualization, but I still think it looks pretty cool, and is easy enough to see approximately who the <strong>current</strong> winner is, and who the <strong>current</strong> loser is, since this is an ongoing process.</p>
+<p>My plan is to wrap this up in a <strong>Part 2</strong>, so stay tuned!</p>
+<p>And also, this post and website were <em>conceptualized</em> on 4/26, which is Phil and Mango’s 5th birthday!! 👽</p>
 <p>🎂🎈🎁<strong>HAPPY BIRTHDAY TO MANGO AND PHIL!</strong>🎂🎈🎁</p>
 <div class="figure">
 <img src="/post/2020-04-26-rummy-5-million_files/babies.jpg" alt="Baby Brothers" />

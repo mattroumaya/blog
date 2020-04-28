@@ -1,8 +1,8 @@
 ---
-title: Rummy 5 Million
+title: Infinite Rummy in the Age of Quarantine
 author: Matt Roumaya
 date: '2020-04-26'
-slug: rummy-5-million
+slug: infinite-rummy-in-the-age-of-quarantine
 categories:
   - R
 tags: []
@@ -25,11 +25,11 @@ library(emo)
 ```
 
 In these *unprecedented times*, my wife Molly and I have been playing infinite rounds of Rummy 
-`r emo::ji("spade_suit")` `r emo::ji("heart_suit")` `r emo::ji("club_suit")` `r emo::ji("diamond_suit")`. Since I don't have any high-quality posts yet (and probably won't any time soon`r emo::ji("poop")`), I'm just going to graph our endless rounds until we're out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so cute that I couldn't resist stealing it `r emo::ji("smiley_cat")`! 
+`r emo::ji("spade_suit")` `r emo::ji("heart_suit")` `r emo::ji("club_suit")` `r emo::ji("diamond_suit")`. Since I don't have any high-quality posts yet (and probably won't any time soon`r emo::ji("poop")`), I'm just going to graph our endless rounds until we're out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so fun and cute that I had to steal it `r emo::ji("smiley_cat")`! 
 
 I spent all weekend getting up and running with the deadly [blogdown](https://bookdown.org/yihui/blogdown/) + [Hugo](https://gohugo.io/) combo, and I'm ready to share my trivial data insights with the world! 
 
-Molly and I love board games like [7 Wonders Duel](https://boardgamegeek.com/boardgame/173346/7-wonders-duel/), [Codenames](https://boardgamegeek.com/boardgame/178900/codenames), and some good ol' [Catan](https://boardgamegeek.com/boardgame/13/catan) when we can round up... anyone else...but we quickly came to terms that we'll be riding out the [stay at home order](https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/) for quite a while.
+Molly and I love board games like [7 Wonders Duel](https://boardgamegeek.com/boardgame/173346/7-wonders-duel/), [Codenames](https://boardgamegeek.com/boardgame/178900/codenames), and some good ol' [Catan](https://boardgamegeek.com/boardgame/13/catan) when we can round up... anyone else...but we have quickly come to terms that we'll be riding out the [stay at home order](https://www.phila.gov/2020-03-22-city-issues-stay-at-home-order-clarifying-restrictions-on-business-activity-in-philadelphia/) for quite a while.
 
 **Let's take a first glimpse at our scorecard data:**
 
@@ -89,7 +89,7 @@ kable(head(rummy_wider))
 ```
 
 
-**Nice! Let's have a first look at how we stack up round to round, and then I'll conclude this post (for now), since it's after 2am.**
+**Nice! Let's have a first look at how we stack up round-to-round:**
 
 ```{r line plot}
 
@@ -98,7 +98,7 @@ rummy_wider %>%
   ggplot(aes(x=Round,y=Score,group=Player,color=Player)) +
   geom_line(size=1) +
   geom_text(aes(label=Score)) +
-  scale_color_manual(values=c("084552", "#f29090")) +
+  scale_color_manual(values=c("#084552", "#f29090")) +
   theme_minimal() +
   labs(title = "...And in That Moment, I swear That We Were (Playing) Infinite (Rummy)",
           subtitle = "Endless Rummy in the Age of Quarantine") 
@@ -108,8 +108,37 @@ rummy_wider %>%
 
 ```
 
+Last night during a bout of insomnia, I came across the [new CRAN release for `ggbump`](https://github.com/davidsjoberg/ggbump) and had to give it a shot, and am pretty excited to find some more uses for it. This definitely isn't the best visualization I've made, and would have been more interesting with a third player (maybe the [thruple from HGTV's **House Hunters**?](https://www.huffpost.com/entry/throuple-house-hunters-hgtv_n_5e46d120c5b64d860fca24df))
 
-And also, this post and my website was *conceptualized* on 4/26, which is Phil and Mango's 5th birthday!! `r emo::ji("alien")`
+Anyway, to work with `ggbump`, we just need to rank each round. We did tie during round 7, so `ties.method = random` will make the decision for us.
+
+```{r ggbump clean, fig.height=7,fig.width=9}
+library(ggbump)
+library(cowplot)
+
+rummy_bump <- rummy_wider %>%
+  group_by(Round) %>%
+  mutate(rank = rank(Score,ties.method = "random")) %>%
+  ungroup()
+
+ggplot(rummy_bump, aes(Round,rank,color = Player)) +
+  geom_point(size = 7) +
+  geom_bump(size = 3, smooth = 6)+
+  scale_x_continuous(breaks = seq(1,25,1)) +
+  theme_minimal_grid(font_size = 14, line_size = 0)+
+  theme(panel.grid.major = element_blank()) +
+  scale_y_continuous(breaks = c(1,2), labels = c("1" = "Loser", "2" = "Winner")) +
+  labs(y = "") +
+  scale_color_manual(values = c("#084552","#F29090"))
+
+
+```
+
+I know I said it's not the best visualization, but I still think it looks pretty cool, and is easy enough to see approximately who the **current** winner is, and who the **current** loser is, since this is an ongoing process.
+
+My plan is to wrap this up in a **Part 2**, so stay tuned!
+
+And also, this post and website were *conceptualized* on 4/26, which is Phil and Mango's 5th birthday!! `r emo::ji("alien")`
 
 `r emo::ji("birthday")``r emo::ji("balloon")``r emo::ji("gift")`**HAPPY BIRTHDAY TO MANGO AND PHIL!**`r emo::ji("birthday")``r emo::ji("balloon")``r emo::ji("gift")`
 
