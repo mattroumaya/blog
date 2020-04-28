@@ -138,7 +138,7 @@ ggplot(rummy_bump, aes(Round,rank,color = Player)) +
 
 ```
 
-I know I said it's not the best visualization I've (and it's not!), but I still think it looks pretty cool, and is easy enough to see the change from win to loss. 
+I know I said it's not the best visualization I've made(and it's not!), but I still think it looks pretty cool, and is easy enough to see the change from win to loss. 
 
 
 **And now, the moment you've all been waiting for!**
