@@ -25,7 +25,7 @@ library(emo)
 ```
 
 In these *unprecedented times*, my wife Molly and I have been playing infinite rounds of Rummy 
-`r emo::ji("spade_suit")` `r emo::ji("heart_suit")` `r emo::ji("club_suit")` `r emo::ji("diamond_suit")`. Since I don't have any high-quality posts yet (and probably won't any time soon`r emo::ji("poop")`), I'm just going to graph our endless rounds until we're out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea so fun and cute that I had to steal it `r emo::ji("smiley_cat")`! 
+`r emo::ji("spade_suit")` `r emo::ji("heart_suit")` `r emo::ji("club_suit")` `r emo::ji("diamond_suit")`. Since I don't have any high-quality posts yet (and probably won't any time soon`r emo::ji("poop")`), I'm just going to graph our endless rounds until we're out of the weeds. My friend and former colleague (and data pro!) Steph showed me how she was graphing nightly games of Rummy 500 with her wife, and I found the idea too fun to not steal `r emo::ji("smiley_cat")`! 
 
 I spent all weekend getting up and running with the deadly [blogdown](https://bookdown.org/yihui/blogdown/) + [Hugo](https://gohugo.io/) combo, and I'm ready to share my trivial data insights with the world! 
 
