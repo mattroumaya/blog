@@ -79,7 +79,7 @@ It's okay, we've got a function for that!
 
 Here's the function in its entirety, where you only need to supply a value for `x`, which should be your SurveyMonkey dataframe. Below, I'll go through the function line-by-line (for the most part), and at the end, show how I would clean up this data file.
 
-P.S. If **snake_case** isn't your thing, there are a [bunch of different cases](http://127.0.0.1:26376/library/snakecase/html/to_any_case.html) you can pass to `clean_names(case = X)` at the end of the function.   
+P.S. If **snake_case** isn't your thing, there are a bunch of different options you can pass to `clean_names(case = X)` at the end of the function.   
 
 ```{r sm func, echo = TRUE}
 
