@@ -36,7 +36,7 @@ This post is an overview of one approach for cleaning up SurveyMonkey columns. I
 3. If needed, subsetting columns into dataframes or lists for analyses/visualization. (The `dplyr` functions `starts_with` and `ends_with` work really well with this workflow).  
 4. That's it, now you're ready to do some meaningful analyses!  
 
-**Let's start by viewing our response data. You'll need to use the packages `tidyverse`, `janitor`, and `readxl` if you're using a *.xlsx* file.** 
+**Let's start by viewing our response data. You'll need to use the packages `tidyverse`, `janitor`, and `readxl` if you're using *.xlsx*.** 
 
 (I always save the original version without any changes so I can build in QC checks, and tend to use `_preserve` as an identifier.) You'll see that some columns are missing values, and will be read in with **"...#"**
 
@@ -50,6 +50,7 @@ library(janitor)
 
 path <- "C:/Users/MR/Desktop/Dummy Data Survey.xlsx"
 
+# Keep this file for QC
 survey_data_preserve <- as_tibble(read_excel(path))
 
 survey_data <- survey_data_preserve
@@ -78,7 +79,7 @@ It's okay, we've got a function for that!
 
 Here's the function in its entirety, where you only need to supply a value for `x`, which should be your SurveyMonkey dataframe. Below, I'll go through the function line-by-line (for the most part), and at the end, show how I would clean up this data file.
 
-P.S.: If **snake_case** isn't your thing, there are a [bunch of different cases](http://127.0.0.1:26376/library/snakecase/html/to_any_case.html) you can pass to `clean_names(case = X)` at the end of the function.   
+P.S. If **snake_case** isn't your thing, there are a [bunch of different cases](http://127.0.0.1:26376/library/snakecase/html/to_any_case.html) you can pass to `clean_names(case = X)` at the end of the function.   
 
 ```{r sm func, echo = TRUE}
 
@@ -106,7 +107,8 @@ double_header <- function(x) {
 # The double header breakdown 
 1. `slice(1)` selects the first row, which contains the other names we need.    
 2. `select_if(negate(is.na))` selects all columns where the first row is not `NA`, because we don't need to alter these column names.    
-3. `pivot_longer(everything())` moves all of our column *names* into the first column as values, and puts all of our secondary column names into the second column.     
+3. `pivot_longer(everything())` transforms our dataframe from wide to long, and automatically creates the columns `name` and `value`.  
+  * (`name` holds all of our column names and `value` holds all of our secondary column names.)  
 
 ```{r pivot longer example, echo=FALSE}
 
@@ -117,12 +119,11 @@ keydat <- survey_data %>%
 
 
 #Step 3: pivot_longer(everything())
-
 print(head(keydat))
 
 ```
 
-4. `group_by(grp = cumsum(!startsWith(name, "...")))` groups rows and then applies a cumulative sum for all values in the `name` column that do not start with "..." until a value other than "..." is encountered. This is better shown in the table below:  
+4. `group_by(grp = cumsum(!startsWith(name, "...")))` groups rows and then applies a cumulative sum for all rows in the `name` column that do not start with **"..."** until a row other than **"..."** is encountered. This is better shown in the table below:  
 
 ```{r group_by example 2, echo = FALSE}
 
@@ -179,7 +180,11 @@ kable(combine)
 
 # Subsetting made easy! 
 
-Now if we want to subset data based on cerain questions/columns, we can do it really easily using `starts_with` and `ends_with`. Sometimes it's easier to rename columns so that they're descriptive enough, and sometimes it's fine to keep some really long descriptive column names if your survey contains a lot of similar questions. 
+Now if we want to subset data based on certain questions/columns, we can do it really easily using `starts_with` and `ends_with`. 
+
+Sometimes it's easier to rename columns so that they're shorter and easier to work with, and sometimes it's fine to keep some really long column names if your survey contains a lot of similar questions.
+
+Below, we'll combine all of the questions that start with `please_provide_your_contact_information` and shorten the names to only start with `contact_information` + `value`.
 
 **`starts_with` example:**
 ```{r starts_with subset}

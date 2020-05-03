@@ -1,14 +1,14 @@
 ---
 title: Dealing With The Survey Monkey Doubleheader
 author: Matt Roumaya
-date: '2020-05-01'
+date: '2020-05-02'
 slug: dealing-with-the-survey-monkey-doubleheader
 categories: []
 tags: []
 subtitle: ''
 summary: ''
 authors: []
-lastmod: '2020-05-01T16:38:05-04:00'
+lastmod: '2020-05-02T16:38:05-04:00'
 featured: no
 image:
   caption: ''
@@ -39,10 +39,11 @@ projects: []
 </li>
 <li>That’s it, now you’re ready to do some meaningful analyses!</li>
 </ol>
-<p><strong>Let’s start by viewing our response data. You’ll need to use the packages <code>tidyverse</code>, <code>janitor</code>, and <code>readxl</code> if you’re using a <em>.xlsx</em> file.</strong></p>
+<p><strong>Let’s start by viewing our response data. You’ll need to use the packages <code>tidyverse</code>, <code>janitor</code>, and <code>readxl</code> if you’re using <em>.xlsx</em>.</strong></p>
 <p>(I always save the original version without any changes so I can build in QC checks, and tend to use <code>_preserve</code> as an identifier.) You’ll see that some columns are missing values, and will be read in with <strong>“…#”</strong></p>
 <pre class="r"><code>path &lt;- &quot;C:/Users/MR/Desktop/Dummy Data Survey.xlsx&quot;
 
+# Keep this file for QC
 survey_data_preserve &lt;- as_tibble(read_excel(path))</code></pre>
 <pre><code>## New names:
 ## * `` -&gt; ...11
@@ -212,7 +213,7 @@ IT
 <div id="the-big-reveal" class="section level1">
 <h1>The big reveal!</h1>
 <p>Here’s the function in its entirety, where you only need to supply a value for <code>x</code>, which should be your SurveyMonkey dataframe. Below, I’ll go through the function line-by-line (for the most part), and at the end, show how I would clean up this data file.</p>
-<p>P.S.: If <strong>snake_case</strong> isn’t your thing, there are a <a href="http://127.0.0.1:26376/library/snakecase/html/to_any_case.html">bunch of different cases</a> you can pass to <code>clean_names(case = X)</code> at the end of the function.</p>
+<p>P.S. If <strong>snake_case</strong> isn’t your thing, there are a <a href="http://127.0.0.1:26376/library/snakecase/html/to_any_case.html">bunch of different cases</a> you can pass to <code>clean_names(case = X)</code> at the end of the function.</p>
 <pre class="r"><code>double_header &lt;- function(x) {
   
   df &lt;- as_tibble(x)
@@ -239,8 +240,12 @@ IT
 </li>
 <li><code>select_if(negate(is.na))</code> selects all columns where the first row is not <code>NA</code>, because we don’t need to alter these column names.<br />
 </li>
-<li><code>pivot_longer(everything())</code> moves all of our column <em>names</em> into the first column as values, and puts all of our secondary column names into the second column.</li>
+<li><code>pivot_longer(everything())</code> transforms our dataframe from wide to long, and automatically creates the columns <code>name</code> and <code>value</code>.<br />
+</li>
 </ol>
+<ul>
+<li>(<code>name</code> holds all of our column names and <code>value</code> holds all of our secondary column names.)</li>
+</ul>
 <pre><code>## # A tibble: 6 x 2
 ##   name                                     value         
 ##   &lt;chr&gt;                                    &lt;chr&gt;         
@@ -251,7 +256,7 @@ IT
 ## 5 ...14                                    City/Town     
 ## 6 ...15                                    State/Province</code></pre>
 <ol start="4" style="list-style-type: decimal">
-<li><code>group_by(grp = cumsum(!startsWith(name, "...")))</code> groups rows and then applies a cumulative sum for all values in the <code>name</code> column that do not start with “…” until a value other than “…” is encountered. This is better shown in the table below:</li>
+<li><code>group_by(grp = cumsum(!startsWith(name, "...")))</code> groups rows and then applies a cumulative sum for all rows in the <code>name</code> column that do not start with <strong>“…”</strong> until a row other than <strong>“…”</strong> is encountered. This is better shown in the table below:</li>
 </ol>
 <table>
 <thead>
@@ -1007,7 +1012,9 @@ describe_your_perfect_pizza_open_ended_response
 </div>
 <div id="subsetting-made-easy" class="section level1">
 <h1>Subsetting made easy!</h1>
-<p>Now if we want to subset data based on cerain questions/columns, we can do it really easily using <code>starts_with</code> and <code>ends_with</code>. Sometimes it’s easier to rename columns so that they’re descriptive enough, and sometimes it’s fine to keep some really long descriptive column names if your survey contains a lot of similar questions.</p>
+<p>Now if we want to subset data based on certain questions/columns, we can do it really easily using <code>starts_with</code> and <code>ends_with</code>.</p>
+<p>Sometimes it’s easier to rename columns so that they’re shorter and easier to work with, and sometimes it’s fine to keep some really long column names if your survey contains a lot of similar questions.</p>
+<p>Below, we’ll combine all of the questions that start with <code>please_provide_your_contact_information</code> and shorten the names to only start with <code>contact_information</code> + <code>value</code>.</p>
 <p><strong><code>starts_with</code> example:</strong></p>
 <pre class="r"><code>contact_info &lt;- survey_data %&gt;%
   select(starts_with(&quot;please_provide_your_contact_information&quot;)) %&gt;%
