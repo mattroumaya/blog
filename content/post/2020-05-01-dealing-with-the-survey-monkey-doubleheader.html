@@ -1,0 +1,1259 @@
+---
+title: Dealing With The Survey Monkey Doubleheader
+author: Matt Roumaya
+date: '2020-05-01'
+slug: dealing-with-the-survey-monkey-doubleheader
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-05-01T16:38:05-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p><img src="/post/2020-05-01-dealing-with-the-survey-monkey-doubleheader_files/sm.png" width="400" height="200" /></p>
+<p>SurveyMonkey 🐒 is a popular online survey development software that outputs a very frustrating kind of response file. If you’ve ever received exported results from SurveyMonkey, you probably know what I’m talking about.</p>
+<p>When response data is exported as a <em>.csv</em> or <em>.xlsx</em> file, it looks something like this:</p>
+<div class="figure">
+<img src="/post/2020-05-01-dealing-with-the-survey-monkey-doubleheader_files/doubleheader.png" alt="The Doubleheader" />
+<p class="caption">The Doubleheader</p>
+</div>
+<p>You can see that the response data for the question <em>“Please provide your contact information:”</em> contains several inputs for Name, Company, Address, etc. Deleting the first row might seem to make sense at first, but when your survey contains dozens of questions with multiple question types, things can get out of hand really fast.</p>
+<p>This post is an overview of one approach for cleaning up SurveyMonkey columns. I struggled with this for a while, but now have a workflow that seems pretty efficient, especially if your goal is to set up <code>RMarkdown</code> reports while your survey is being administered. If it is helpful for you, that’s awesome! If you have a better way of approaching this issue, please let me know!</p>
+<div id="the-workflow" class="section level1">
+<h1>The workflow</h1>
+<ol style="list-style-type: decimal">
+<li>A function that creates column names that are concatenated from the question + response in_snake_case (or camelCase, or whatever) using the aptly-named <code>janitor</code> package.<br />
+</li>
+<li>Cleaning up any annoying/extremely_long_column_names_from_very_long_questions.<br />
+</li>
+<li>If needed, subsetting columns into dataframes or lists for analyses/visualization. (The <code>dplyr</code> functions <code>starts_with</code> and <code>ends_with</code> work really well with this workflow).<br />
+</li>
+<li>That’s it, now you’re ready to do some meaningful analyses!</li>
+</ol>
+<p><strong>Let’s start by viewing our response data. You’ll need to use the packages <code>tidyverse</code>, <code>janitor</code>, and <code>readxl</code> if you’re using a <em>.xlsx</em> file.</strong></p>
+<p>(I always save the original version without any changes so I can build in QC checks, and tend to use <code>_preserve</code> as an identifier.) You’ll see that some columns are missing values, and will be read in with <strong>“…#”</strong></p>
+<pre class="r"><code>path &lt;- &quot;C:/Users/MR/Desktop/Dummy Data Survey.xlsx&quot;
+
+survey_data_preserve &lt;- as_tibble(read_excel(path))</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...11
+## * `` -&gt; ...12
+## * `` -&gt; ...13
+## * `` -&gt; ...14
+## * `` -&gt; ...15
+## * ...</code></pre>
+<pre class="r"><code>survey_data &lt;- survey_data_preserve</code></pre>
+<pre class="r"><code>kable(head(survey_data[,10:15]))</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+Please provide your contact information:
+</th>
+<th style="text-align:left;">
+…11
+</th>
+<th style="text-align:left;">
+…12
+</th>
+<th style="text-align:left;">
+…13
+</th>
+<th style="text-align:left;">
+…14
+</th>
+<th style="text-align:left;">
+…15
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Name
+</td>
+<td style="text-align:left;">
+Company
+</td>
+<td style="text-align:left;">
+Address
+</td>
+<td style="text-align:left;">
+Address 2
+</td>
+<td style="text-align:left;">
+City/Town
+</td>
+<td style="text-align:left;">
+State/Province
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Benjamin Franklin
+</td>
+<td style="text-align:left;">
+Poor Richard’s
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Philadelphia
+</td>
+<td style="text-align:left;">
+PA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mae Jemison
+</td>
+<td style="text-align:left;">
+NASA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Decatur
+</td>
+<td style="text-align:left;">
+Alabama
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Carl Sagan
+</td>
+<td style="text-align:left;">
+Smithsonian
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Washington
+</td>
+<td style="text-align:left;">
+D.C.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W. E. B. Du Bois
+</td>
+<td style="text-align:left;">
+NAACP
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Great Barrington
+</td>
+<td style="text-align:left;">
+MA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Florence Nightingale
+</td>
+<td style="text-align:left;">
+Public Health Co
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Florence
+</td>
+<td style="text-align:left;">
+IT
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="ugh-look-at-those-terrible-column-names." class="section level1">
+<h1>Ugh! Look at those terrible column names. 😠</h1>
+<div class="figure">
+<img src="/post/2020-05-01-dealing-with-the-survey-monkey-doubleheader_files/IMG-2932.JPG" alt="Oof!!!" />
+<p class="caption">Oof!!!</p>
+</div>
+<p>It’s okay, we’ve got a function for that!
+<a href="https://stackoverflow.com/questions/60456987/renaming-columns-by-pasting-first-row-if-not-na/">(thanks to akrun on SO)</a></p>
+</div>
+<div id="the-big-reveal" class="section level1">
+<h1>The big reveal!</h1>
+<p>Here’s the function in its entirety, where you only need to supply a value for <code>x</code>, which should be your SurveyMonkey dataframe. Below, I’ll go through the function line-by-line (for the most part), and at the end, show how I would clean up this data file.</p>
+<p>P.S.: If <strong>snake_case</strong> isn’t your thing, there are a <a href="http://127.0.0.1:26376/library/snakecase/html/to_any_case.html">bunch of different cases</a> you can pass to <code>clean_names(case = X)</code> at the end of the function.</p>
+<pre class="r"><code>double_header &lt;- function(x) {
+  
+  df &lt;- as_tibble(x)
+  
+  keydat &lt;- df %&gt;%
+    slice(1) %&gt;%
+    select_if(negate(is.na)) %&gt;%
+    pivot_longer(everything()) %&gt;%
+    group_by(grp = cumsum(!startsWith(name, &quot;...&quot;))) %&gt;%
+    mutate(value = sprintf(&quot;%s (%s)&quot;, first(name), value)) %&gt;%
+    ungroup %&gt;%
+    select(-grp)
+  
+  df &lt;- df %&gt;%
+    rename_at(vars(keydat$name), ~ keydat$value) %&gt;%
+    slice(-1) %&gt;%
+    clean_names()
+}</code></pre>
+</div>
+<div id="the-double-header-breakdown" class="section level1">
+<h1>The double header breakdown</h1>
+<ol style="list-style-type: decimal">
+<li><code>slice(1)</code> selects the first row, which contains the other names we need.<br />
+</li>
+<li><code>select_if(negate(is.na))</code> selects all columns where the first row is not <code>NA</code>, because we don’t need to alter these column names.<br />
+</li>
+<li><code>pivot_longer(everything())</code> moves all of our column <em>names</em> into the first column as values, and puts all of our secondary column names into the second column.</li>
+</ol>
+<pre><code>## # A tibble: 6 x 2
+##   name                                     value         
+##   &lt;chr&gt;                                    &lt;chr&gt;         
+## 1 Please provide your contact information: Name          
+## 2 ...11                                    Company       
+## 3 ...12                                    Address       
+## 4 ...13                                    Address 2     
+## 5 ...14                                    City/Town     
+## 6 ...15                                    State/Province</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li><code>group_by(grp = cumsum(!startsWith(name, "...")))</code> groups rows and then applies a cumulative sum for all values in the <code>name</code> column that do not start with “…” until a value other than “…” is encountered. This is better shown in the table below:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+name
+</th>
+<th style="text-align:left;">
+value
+</th>
+<th style="text-align:right;">
+grp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Please provide your contact information:
+</td>
+<td style="text-align:left;">
+Name
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…11
+</td>
+<td style="text-align:left;">
+Company
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…12
+</td>
+<td style="text-align:left;">
+Address
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…13
+</td>
+<td style="text-align:left;">
+Address 2
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…14
+</td>
+<td style="text-align:left;">
+City/Town
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…15
+</td>
+<td style="text-align:left;">
+State/Province
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…16
+</td>
+<td style="text-align:left;">
+ZIP/Postal Code
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…17
+</td>
+<td style="text-align:left;">
+Country
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…18
+</td>
+<td style="text-align:left;">
+Email Address
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…19
+</td>
+<td style="text-align:left;">
+Phone Number
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+I wish it would have snowed more this winter.
+</td>
+<td style="text-align:left;">
+Response
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+I have consumed these beverages in the past week (select all that apply.)
+</td>
+<td style="text-align:left;">
+Water
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…22
+</td>
+<td style="text-align:left;">
+Coffee
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…23
+</td>
+<td style="text-align:left;">
+Tea
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…24
+</td>
+<td style="text-align:left;">
+Soda
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…25
+</td>
+<td style="text-align:left;">
+Beer
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…26
+</td>
+<td style="text-align:left;">
+Wine
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…27
+</td>
+<td style="text-align:left;">
+Hard Liquor
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…28
+</td>
+<td style="text-align:left;">
+Juice
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Choose all of the places you have lived for 6 months or longer.
+</td>
+<td style="text-align:left;">
+Pennsylvania
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…30
+</td>
+<td style="text-align:left;">
+New Jersey
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…31
+</td>
+<td style="text-align:left;">
+Delaware
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…32
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…33
+</td>
+<td style="text-align:left;">
+California
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…34
+</td>
+<td style="text-align:left;">
+Texas
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…35
+</td>
+<td style="text-align:left;">
+Florida
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…36
+</td>
+<td style="text-align:left;">
+Other (please specify)
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Describe your perfect day off:
+</td>
+<td style="text-align:left;">
+Open-Ended Response
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Describe your perfect pizza:
+</td>
+<td style="text-align:left;">
+Open-Ended Response
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+</tbody>
+</table>
+<ol start="5" style="list-style-type: decimal">
+<li><code>mutate(value = sprintf("%s (%s)", first(name), value))</code> updates our <code>value</code> column and concatenates our names so that they’re meaningful. We’re almost there!</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+name
+</th>
+<th style="text-align:left;">
+value
+</th>
+<th style="text-align:right;">
+grp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Please provide your contact information:
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (Name)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…11
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (Company)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…12
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (Address)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…13
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (Address 2)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…14
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (City/Town)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…15
+</td>
+<td style="text-align:left;">
+Please provide your contact information: (State/Province)
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+<ol start="6" style="list-style-type: decimal">
+<li>Then we just <code>ungroup</code> and drop the <code>grp</code> column.<br />
+</li>
+<li>Finally, we rename the columns in our <code>survey_data</code> by using our updated names in <code>keydat$value</code>, and call <code>clean_names()</code> to convert to snake_case 🐍</li>
+</ol>
+</div>
+<div id="all-together-now" class="section level1">
+<h1>All together now</h1>
+<p>Let’s run the function on <code>survey_data</code></p>
+<pre class="r"><code>survey_data &lt;- double_header(survey_data)</code></pre>
+<strong>Here’s a comparison of our original names and our cleaned names:</strong>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+Old Names
+</th>
+<th style="text-align:left;">
+New Names
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Respondent ID
+</td>
+<td style="text-align:left;">
+respondent_id
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Collector ID
+</td>
+<td style="text-align:left;">
+collector_id
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Start Date
+</td>
+<td style="text-align:left;">
+start_date
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+End Date
+</td>
+<td style="text-align:left;">
+end_date
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IP Address
+</td>
+<td style="text-align:left;">
+ip_address
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Email Address
+</td>
+<td style="text-align:left;">
+email_address
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+First Name
+</td>
+<td style="text-align:left;">
+first_name
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Last Name
+</td>
+<td style="text-align:left;">
+last_name
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Custom Data 1
+</td>
+<td style="text-align:left;">
+custom_data_1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Please provide your contact information:
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_name
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…11
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_company
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…12
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_address
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…13
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_address_2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…14
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_city_town
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…15
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_state_province
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…16
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_zip_postal_code
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…17
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_country
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…18
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_email_address
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…19
+</td>
+<td style="text-align:left;">
+please_provide_your_contact_information_phone_number
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+I wish it would have snowed more this winter.
+</td>
+<td style="text-align:left;">
+i_wish_it_would_have_snowed_more_this_winter_response
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+I have consumed these beverages in the past week (select all that apply.)
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_water
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…22
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_coffee
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…23
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_tea
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…24
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_soda
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…25
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_beer
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…26
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_wine
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…27
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_hard_liquor
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…28
+</td>
+<td style="text-align:left;">
+i_have_consumed_these_beverages_in_the_past_week_select_all_that_apply_juice
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Choose all of the places you have lived for 6 months or longer.
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_pennsylvania
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…30
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_new_jersey
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…31
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_delaware
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…32
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_new_york
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…33
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_california
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…34
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_texas
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…35
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_florida
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+…36
+</td>
+<td style="text-align:left;">
+choose_all_of_the_places_you_have_lived_for_6_months_or_longer_other_please_specify
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Describe your perfect day off:
+</td>
+<td style="text-align:left;">
+describe_your_perfect_day_off_open_ended_response
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Describe your perfect pizza:
+</td>
+<td style="text-align:left;">
+describe_your_perfect_pizza_open_ended_response
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="subsetting-made-easy" class="section level1">
+<h1>Subsetting made easy!</h1>
+<p>Now if we want to subset data based on cerain questions/columns, we can do it really easily using <code>starts_with</code> and <code>ends_with</code>. Sometimes it’s easier to rename columns so that they’re descriptive enough, and sometimes it’s fine to keep some really long descriptive column names if your survey contains a lot of similar questions.</p>
+<p><strong><code>starts_with</code> example:</strong></p>
+<pre class="r"><code>contact_info &lt;- survey_data %&gt;%
+  select(starts_with(&quot;please_provide_your_contact_information&quot;)) %&gt;%
+  rename_at(vars(starts_with(&quot;please&quot;)), ~str_remove(.,&quot;please_provide_your_&quot;))
+
+kable(head(contact_info))</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+contact_information_name
+</th>
+<th style="text-align:left;">
+contact_information_company
+</th>
+<th style="text-align:left;">
+contact_information_address
+</th>
+<th style="text-align:left;">
+contact_information_address_2
+</th>
+<th style="text-align:left;">
+contact_information_city_town
+</th>
+<th style="text-align:left;">
+contact_information_state_province
+</th>
+<th style="text-align:left;">
+contact_information_zip_postal_code
+</th>
+<th style="text-align:left;">
+contact_information_country
+</th>
+<th style="text-align:left;">
+contact_information_email_address
+</th>
+<th style="text-align:left;">
+contact_information_phone_number
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Benjamin Franklin
+</td>
+<td style="text-align:left;">
+Poor Richard’s
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Philadelphia
+</td>
+<td style="text-align:left;">
+PA
+</td>
+<td style="text-align:left;">
+19104
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:benjamins@gmail.com" class="email">benjamins@gmail.com</a>
+</td>
+<td style="text-align:left;">
+215-555-4444
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mae Jemison
+</td>
+<td style="text-align:left;">
+NASA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Decatur
+</td>
+<td style="text-align:left;">
+Alabama
+</td>
+<td style="text-align:left;">
+20104
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:mjemison@nasa.gov" class="email">mjemison@nasa.gov</a>
+</td>
+<td style="text-align:left;">
+221-134-4646
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Carl Sagan
+</td>
+<td style="text-align:left;">
+Smithsonian
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Washington
+</td>
+<td style="text-align:left;">
+D.C.
+</td>
+<td style="text-align:left;">
+33321
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:stargazer@gmail.com" class="email">stargazer@gmail.com</a>
+</td>
+<td style="text-align:left;">
+999-999-4422
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+W. E. B. Du Bois
+</td>
+<td style="text-align:left;">
+NAACP
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Great Barrington
+</td>
+<td style="text-align:left;">
+MA
+</td>
+<td style="text-align:left;">
+1230
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:dubois@web.com" class="email">dubois@web.com</a>
+</td>
+<td style="text-align:left;">
+999-000-1234
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Florence Nightingale
+</td>
+<td style="text-align:left;">
+Public Health Co
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Florence
+</td>
+<td style="text-align:left;">
+IT
+</td>
+<td style="text-align:left;">
+33225
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:firstnurse@aol.com" class="email">firstnurse@aol.com</a>
+</td>
+<td style="text-align:left;">
+123-456-7899
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Galileo Galilei
+</td>
+<td style="text-align:left;">
+NASA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Pisa
+</td>
+<td style="text-align:left;">
+IT
+</td>
+<td style="text-align:left;">
+12345
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:galileo123@yahoo.com" class="email">galileo123@yahoo.com</a>
+</td>
+<td style="text-align:left;">
+111-888-9944
+</td>
+</tr>
+</tbody>
+</table>
+<p><code>ends_with</code> is really helpful in combination with our <code>double_header</code> function and SurveyMonkey data, because open-ended or free-text responses all end with <em>…open_ended_response</em></p>
+<p>Depending on the report or project you’re building, it’s sometimes useful to add all of your free-text responses as dataframes in a list, to include as an appendix, or to select important comments to include in an executive summary.</p>
+<p><strong><code>ends_with</code> example:</strong></p>
+<pre class="r"><code>open_ended &lt;- survey_data %&gt;%
+  select(ends_with(&quot;open_ended_response&quot;)) %&gt;%
+  map(., function(x) as.data.frame(x))
+
+print(names(open_ended))</code></pre>
+<pre><code>## [1] &quot;describe_your_perfect_day_off_open_ended_response&quot;
+## [2] &quot;describe_your_perfect_pizza_open_ended_response&quot;</code></pre>
+<p>That’s it for this post! I’d love to hear from you if you found this workflow helpful, or if there is any way it could be improved.</p>
+<p>Some ideas for future posts include building this function into a package (for the sole purpose of learning how to build <code>R</code> packages), showing a few tricks I’ve learned with the <code>HH</code> and <code>lattice</code> packages for visualizing Likert scale responses, and some more trivial posts about Rummy, House Hunters, and any other reality TV my wife and I are currently fixated on.</p>
+</div>
