@@ -1,0 +1,125 @@
+---
+title: doubleheadR
+author: Matt Roumaya
+date: '2020-07-25'
+slug: doubleheadr-surveymonkey-column-cleaning-in-R
+categories:
+    - R
+    - SurveyMonkey
+    - Survey
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-07-25T09:40:31-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+```{r setup, echo = FALSE,warning=FALSE, include = FALSE}
+knitr::opts_chunk$set(message=FALSE, fig.width = 8, fig.height = 6)
+library(emo)
+library(tidyverse)
+library(blogdown)
+library(doubleheadr)
+library(kableExtra)
+
+see <-emo::ji_keyword %>% unlist %>% as_tibble
+
+```
+
+
+The past few months of work-life have been constantly busy with survey design and analysis. COVID has really changed the landscape for just about everything, and leaders of projects and departments want and need to implement change quickly, and survey research is helping to inform speedy decision making.  
+
+![(From Luyi Wang's *Reigning Heads*)](/post/2020-07-25-doubleheadr/the_heads.jpg)
+
+I'm here to demo the first R package that I've ever written that has been helping me quickly clean and tidy data from SurveyMonkey to prepare for analysis and reporting. This is also a continuation of my previous post about [tidying the SurveyMonkey Double Header](https://www.mattroumaya.com/post/dealing-with-the-survey-monkey-doubleheader/). 
+
+# Background Info \
+
+`doubleheadr` will be useful if you:\
+* Download or inherit data from SurveyMonkey as `.xlsx` or `.csv`\
+* Commonly find yourself struggling to quickly tidy the header and sub-header, and intuitively rename columns \
+* Are fed up with your current process for the two steps above and are looking for a new approach  \
+
+Getting survey data ready for analysis shouldn't take more than a few lines of code (if any!), and that has been my personal objective ever since I started using R for survey analysis, reporting, and dashboard creation.  
+
+As a quick side note, if you have a SurveyMonkey account, you should absolutely check out [Sam Firke's `surveymonkey` package](https://github.com/tntp/surveymonkey), which makes it super easy to pull data from SurveyMonkey's API. One limitation is that the API is limited to 500 calls per day, (meaning you will max out with any survey having over 50k responses). It's also common for analysts and data wranglers to inherit response files from other departments or clients, and that's where `doubleheadr` can help out.
+
+# `doubleheadr` in Action
+
+You'll need `devtools` (to run `install_github()`), `tidyverse`, and `janitor` (also by Sam Firke) to run `doubleheadr`.
+
+## Step 1: install packages
+
+I'll assume you are familiar with installing from GitHub, and I'm working on being more concise. 
+```{r step 1}
+library(devtools)
+install_github('mattroumaya/doubleheadr')
+
+```
+
+## Step 2: check out the demo file
+
+```{r step 2}
+library(tidyverse)
+library(doubleheadr)
+
+demo <- doubleheadr::demo
+
+```
+
+`doubleheadr` comes with a built-in demo data set, which helps illustrate the two functions available: `clean_headr` and `trim_headr`. The data set `demo` mimics a `.xlsx` export from SurveyMonkey and looks like this: 
+
+```{r demo table, echo=FALSE, message=FALSE, warning=FALSE}
+demo[1:4,] %>% 
+  kable() %>% 
+  row_spec(row = 0:1, background = 'pink') %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = F, 
+                position = 'left',
+                font_size = 10)
+```
+
+
+As analyzers of this data, we will want to paste the column names and values in the first row together. It's a bit more complicated than that, which is detailed in my previous post, but we're being concise here.
+
+## Step 3: `clean_headr`
+
+We can call `clean_headr` on our `data.frame` or `tibble` object, which takes three arguments: \
+* `dat`: a `data.frame` object (in this case, inherited from LHS) \
+* `rep_val`: the repeated value as a character string. Our column names have a repeated value of '...' (or '..', or '.')\
+* `clean_names`: this is a `janitor` function that will convert all column names to snake_case and will strip out any non-alphanumeric characters.
+
+
+```{r clean_headr}
+demo %>% 
+  clean_headr(rep_val = '...', clean_names = TRUE) %>% 
+  colnames()
+```
+
+We can compare this with `clean_names = FALSE`, which creates column names that are very similar to the actual survey questions that we've asked.
+
+```{r clean_header clean_names FALSE}
+demo %>% 
+  clean_headr(rep_val = '...', clean_names = FALSE) %>% 
+  colnames()
+```
+
+## Step 4: `trim_headr`
+
+Whether we use `clean_names` or not, we will most likely want to shorten some of the column names so that our code is more legible. The demo data here is pretty conservative - if you have a verbose survey question, you can imagine how long your column names could be! \
+
+`trim_headr` makes it easy to shorten column names, and is really just composed of a concatenated `gsub` call on all of the column names. Let's say we do use `clean_names` and we want to remove "please_provide_your_contact_" from our column names, so that we will still be left with shorter, descriptive names like `information_name`, `information_company`, etc. Let's also shorten our last column name to `snowed_more_this_winter`.
+```{r trim_headr}
+demo %>% 
+  clean_headr(rep_val = '...') %>% 
+  trim_headr(c('please_provide_your_contact_', 'i_wish_it_would_have_', '_response')) %>% 
+  colnames()
+```
+Easy! Depending on the number of survey questions, getting to this point could take a really long time by first manually renaming columns and then deleting the first row. I've found this workflow to be more intuitive, and leaves me more time to focus on the data and creating effective dashboards and reports. 
+
+If you happen to try out `doubleheadr` and find it helpful, or more likely, find some bugs or inefficiencies, I would love to hear about it! 

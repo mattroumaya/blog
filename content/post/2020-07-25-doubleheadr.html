@@ -1,0 +1,313 @@
+---
+title: doubleheadR
+author: Matt Roumaya
+date: '2020-07-25'
+slug: doubleheadr-surveymonkey-column-cleaning-in-R
+categories:
+    - R
+    - SurveyMonkey
+    - Survey
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-07-25T09:40:31-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>The past few months of work-life have been constantly busy with survey design and analysis. COVID has really changed the landscape for just about everything, and leaders of projects and departments want and need to implement change quickly, and survey research is helping to inform speedy decision making.</p>
+<div class="figure">
+<img src="/post/2020-07-25-doubleheadr/the_heads.jpg" alt="" />
+<p class="caption">(From Luyi Wang’s <em>Reigning Heads</em>)</p>
+</div>
+<p>I’m here to demo the first R package that I’ve ever written that has been helping me quickly clean and tidy data from SurveyMonkey to prepare for analysis and reporting. This is also a continuation of my previous post about <a href="https://www.mattroumaya.com/post/dealing-with-the-survey-monkey-doubleheader/">tidying the SurveyMonkey Double Header</a>.</p>
+<div id="background-info" class="section level1">
+<h1>Background Info<br />
+</h1>
+<p><code>doubleheadr</code> will be useful if you:<br />
+* Download or inherit data from SurveyMonkey as <code>.xlsx</code> or <code>.csv</code><br />
+* Commonly find yourself struggling to quickly tidy the header and sub-header, and intuitively rename columns<br />
+* Are fed up with your current process for the two steps above and are looking for a new approach<br />
+</p>
+<p>Getting survey data ready for analysis shouldn’t take more than a few lines of code (if any!), and that has been my personal objective ever since I started using R for survey analysis, reporting, and dashboard creation.</p>
+<p>As a quick side note, if you have a SurveyMonkey account, you should absolutely check out <a href="https://github.com/tntp/surveymonkey">Sam Firke’s <code>surveymonkey</code> package</a>, which makes it super easy to pull data from SurveyMonkey’s API. One limitation is that the API is limited to 500 calls per day, (meaning you will max out with any survey having over 50k responses). It’s also common for analysts and data wranglers to inherit response files from other departments or clients, and that’s where <code>doubleheadr</code> can help out.</p>
+</div>
+<div id="doubleheadr-in-action" class="section level1">
+<h1><code>doubleheadr</code> in Action</h1>
+<p>You’ll need <code>devtools</code> (to run <code>install_github()</code>), <code>tidyverse</code>, and <code>janitor</code> (also by Sam Firke) to run <code>doubleheadr</code>.</p>
+<div id="step-1-install-packages" class="section level2">
+<h2>Step 1: install packages</h2>
+<p>I’ll assume you are familiar with installing from GitHub, and I’m working on being more concise.</p>
+<pre class="r"><code>library(devtools)
+install_github(&#39;mattroumaya/doubleheadr&#39;)</code></pre>
+</div>
+<div id="step-2-check-out-the-demo-file" class="section level2">
+<h2>Step 2: check out the demo file</h2>
+<pre class="r"><code>library(tidyverse)
+library(doubleheadr)
+
+demo &lt;- doubleheadr::demo</code></pre>
+<p><code>doubleheadr</code> comes with a built-in demo data set, which helps illustrate the two functions available: <code>clean_headr</code> and <code>trim_headr</code>. The data set <code>demo</code> mimics a <code>.xlsx</code> export from SurveyMonkey and looks like this:</p>
+<table class="table table-striped table-hover table-condensed" style="font-size: 10px; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:right;background-color: pink !important;">
+Respondent ID
+</th>
+<th style="text-align:left;background-color: pink !important;">
+Please provide your contact information:
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…3
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…4
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…5
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…6
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…7
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…8
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…9
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…10
+</th>
+<th style="text-align:left;background-color: pink !important;">
+…11
+</th>
+<th style="text-align:left;background-color: pink !important;">
+I wish it would have snowed more this winter.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;background-color: pink !important;">
+NA
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Name
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Company
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Address
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Address 2
+</td>
+<td style="text-align:left;background-color: pink !important;">
+City/Town
+</td>
+<td style="text-align:left;background-color: pink !important;">
+State/Province
+</td>
+<td style="text-align:left;background-color: pink !important;">
+ZIP/Postal Code
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Country
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Email Address
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Phone Number
+</td>
+<td style="text-align:left;background-color: pink !important;">
+Response
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11385284375
+</td>
+<td style="text-align:left;">
+Benjamin Franklin
+</td>
+<td style="text-align:left;">
+Poor Richard’s
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Philadelphia
+</td>
+<td style="text-align:left;">
+PA
+</td>
+<td style="text-align:left;">
+19104
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:benjamins@gmail.com" class="email">benjamins@gmail.com</a>
+</td>
+<td style="text-align:left;">
+215-555-4444
+</td>
+<td style="text-align:left;">
+Strongly disagree
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11385273621
+</td>
+<td style="text-align:left;">
+Mae Jemison
+</td>
+<td style="text-align:left;">
+NASA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Decatur
+</td>
+<td style="text-align:left;">
+Alabama
+</td>
+<td style="text-align:left;">
+20104
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:mjemison@nasa.gov" class="email">mjemison@nasa.gov</a>
+</td>
+<td style="text-align:left;">
+221-134-4646
+</td>
+<td style="text-align:left;">
+Strongly agree
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11385258069
+</td>
+<td style="text-align:left;">
+Carl Sagan
+</td>
+<td style="text-align:left;">
+Smithsonian
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+Washington
+</td>
+<td style="text-align:left;">
+D.C.
+</td>
+<td style="text-align:left;">
+33321
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+<a href="mailto:stargazer@gmail.com" class="email">stargazer@gmail.com</a>
+</td>
+<td style="text-align:left;">
+999-999-4422
+</td>
+<td style="text-align:left;">
+Neither agree nor disagree
+</td>
+</tr>
+</tbody>
+</table>
+<p>As analyzers of this data, we will want to paste the column names and values in the first row together. It’s a bit more complicated than that, which is detailed in my previous post, but we’re being concise here.</p>
+</div>
+<div id="step-3-clean_headr" class="section level2">
+<h2>Step 3: <code>clean_headr</code></h2>
+<p>We can call <code>clean_headr</code> on our <code>data.frame</code> or <code>tibble</code> object, which takes three arguments:<br />
+* <code>dat</code>: a <code>data.frame</code> object (in this case, inherited from LHS)<br />
+* <code>rep_val</code>: the repeated value as a character string. Our column names have a repeated value of ‘…’ (or ‘..’, or ‘.’)<br />
+* <code>clean_names</code>: this is a <code>janitor</code> function that will convert all column names to snake_case and will strip out any non-alphanumeric characters.</p>
+<pre class="r"><code>demo %&gt;% 
+  clean_headr(rep_val = &#39;...&#39;, clean_names = TRUE) %&gt;% 
+  colnames()</code></pre>
+<pre><code>##  [1] &quot;respondent_id&quot;                                          
+##  [2] &quot;please_provide_your_contact_information_name&quot;           
+##  [3] &quot;please_provide_your_contact_information_company&quot;        
+##  [4] &quot;please_provide_your_contact_information_address&quot;        
+##  [5] &quot;please_provide_your_contact_information_address_2&quot;      
+##  [6] &quot;please_provide_your_contact_information_city_town&quot;      
+##  [7] &quot;please_provide_your_contact_information_state_province&quot; 
+##  [8] &quot;please_provide_your_contact_information_zip_postal_code&quot;
+##  [9] &quot;please_provide_your_contact_information_country&quot;        
+## [10] &quot;please_provide_your_contact_information_email_address&quot;  
+## [11] &quot;please_provide_your_contact_information_phone_number&quot;   
+## [12] &quot;i_wish_it_would_have_snowed_more_this_winter_response&quot;</code></pre>
+<p>We can compare this with <code>clean_names = FALSE</code>, which creates column names that are very similar to the actual survey questions that we’ve asked.</p>
+<pre class="r"><code>demo %&gt;% 
+  clean_headr(rep_val = &#39;...&#39;, clean_names = FALSE) %&gt;% 
+  colnames()</code></pre>
+<pre><code>##  [1] &quot;Respondent ID&quot;                                           
+##  [2] &quot;Please provide your contact information: Name&quot;           
+##  [3] &quot;Please provide your contact information: Company&quot;        
+##  [4] &quot;Please provide your contact information: Address&quot;        
+##  [5] &quot;Please provide your contact information: Address 2&quot;      
+##  [6] &quot;Please provide your contact information: City/Town&quot;      
+##  [7] &quot;Please provide your contact information: State/Province&quot; 
+##  [8] &quot;Please provide your contact information: ZIP/Postal Code&quot;
+##  [9] &quot;Please provide your contact information: Country&quot;        
+## [10] &quot;Please provide your contact information: Email Address&quot;  
+## [11] &quot;Please provide your contact information: Phone Number&quot;   
+## [12] &quot;I wish it would have snowed more this winter. Response&quot;</code></pre>
+</div>
+<div id="step-4-trim_headr" class="section level2">
+<h2>Step 4: <code>trim_headr</code></h2>
+<p>Whether we use <code>clean_names</code> or not, we will most likely want to shorten some of the column names so that our code is more legible. The demo data here is pretty conservative - if you have a verbose survey question, you can imagine how long your column names could be!<br />
+</p>
+<p><code>trim_headr</code> makes it easy to shorten column names, and is really just composed of a concatenated <code>gsub</code> call on all of the column names. Let’s say we do use <code>clean_names</code> and we want to remove “please_provide_your_contact_” from our column names, so that we will still be left with shorter, descriptive names like <code>information_name</code>, <code>information_company</code>, etc. Let’s also shorten our last column name to <code>snowed_more_this_winter</code>.</p>
+<pre class="r"><code>demo %&gt;% 
+  clean_headr(rep_val = &#39;...&#39;) %&gt;% 
+  trim_headr(c(&#39;please_provide_your_contact_&#39;, &#39;i_wish_it_would_have_&#39;, &#39;_response&#39;)) %&gt;% 
+  colnames()</code></pre>
+<pre><code>##  [1] &quot;respondent_id&quot;               &quot;information_name&quot;           
+##  [3] &quot;information_company&quot;         &quot;information_address&quot;        
+##  [5] &quot;information_address_2&quot;       &quot;information_city_town&quot;      
+##  [7] &quot;information_state_province&quot;  &quot;information_zip_postal_code&quot;
+##  [9] &quot;information_country&quot;         &quot;information_email_address&quot;  
+## [11] &quot;information_phone_number&quot;    &quot;snowed_more_this_winter&quot;</code></pre>
+<p>Easy! Depending on the number of survey questions, getting to this point could take a really long time by first manually renaming columns and then deleting the first row. I’ve found this workflow to be more intuitive, and leaves me more time to focus on the data and creating effective dashboards and reports.</p>
+<p>If you happen to try out <code>doubleheadr</code> and find it helpful, or more likely, find some bugs or inefficiencies, I would love to hear about it!</p>
+</div>
+</div>
