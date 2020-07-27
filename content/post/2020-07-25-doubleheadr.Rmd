@@ -123,3 +123,5 @@ demo %>%
 Easy! Depending on the number of survey questions, getting to this point could take a really long time by first manually renaming columns and then deleting the first row. I've found this workflow to be more intuitive, and leaves me more time to focus on the data and creating effective dashboards and reports. 
 
 If you happen to try out `doubleheadr` and find it helpful, or more likely, find some bugs or inefficiencies, I would love to hear about it! 
+
+
