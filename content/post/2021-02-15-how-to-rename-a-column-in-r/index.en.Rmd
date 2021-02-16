@@ -1,0 +1,448 @@
+---
+title: 52 Different Ways to Rename a Column in R
+author: Matt Roumaya
+date: '2021-02-16'
+slug: 52-different-ways-to-rename-a-column-in-r
+categories:
+  - R
+  - data cleaning
+  - column
+  - rename
+  - dplyr
+  - base r
+  - data.table
+tags:
+  - r
+  - dplyr
+  - data.table
+  - data cleaning
+  - R
+  - cats
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-02-15T18:04:48-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(gt)
+df <- data.frame(old_column = c("Here", "is", "a", "column"))
+```
+
+
+I haven't posted for a while, and came across a tweet from Angie Jones that I really related to. 
+
+{{% tweet 1361026673290797060 %}}
+
+Not that my previous posts were intellectual thinkpieces, but I thought that I had to write about something novel or innovative to provide any level of value. 
+
+When I first starting using `R`, my code was a mash-up of `base R`, `dplyr`, and `data.table`. I would reference a column by index and then by name. It was hard for me to follow, and I cringe at the idea that I sent some of this old code to colleagues. 
+
+I was trying to think of how many ways there are to do simple data cleaning tasks in `R`, and thought it would be fun to explore. 
+
+The only task accomplished in the rest of this post will be renaming a column, and some pics of my cats.
+
+
+- Original column name: `old_column`
+- Renamed column name: `new_column`
+
+Every example will include a `data.frame` that is called `df` and will contain one column named `old_column` that we will rename as `new_column`:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data.frame(old_column = c("Here", "is", "a", "column")) %>% 
+  gt()
+```
+
+# Using `Base R`
+
+The following examples will only use `base R`, meaning no additional packages will be required to run this code.
+
+1. Call `colnames` on `df` and index the first column.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[1] <- "new_column"
+```
+
+
+2. Call `names` on `df` and index the first column.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[1] <- "new_column"
+```
+
+3. Call `colnames` on `df` and subset the first column also using `colnames`.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[colnames(df) == "old_column"] <- "new_column"
+```
+
+4. Call `names` on `df` and subset the first column also using `names`.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[names(df) == "old_column"] <- "new_column"
+```
+
+5. Call `colnames` on `df` and subset the first column using `names`.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[names(df) == "old_column"] <- "new_column"
+```
+
+6. Call `names` on `df` and subset the first column using `colnames`.
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[colnames(df) == "old_column"] <- 'new_column'
+```
+
+7. Call `colnames` on `df` and subset using logical indexing `which`. This returns the index of the column that is equal to "old_column".
+
+```{r}
+colnames(df)[which(colnames(df) == "old_column")] <- "new_column"
+```
+
+8. Since `df` only has one column, we can also call `names` on `df`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- "new_column"
+```
+
+9. ...or `colnames` on `df`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- "new_column"
+```
+
+10. We can also use a different, and less efficient approach. Instead of renaming the column value, we can create a new column that is identical to `old_column` and name it `new_column`. Then we can remove `old_column` from our `df`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+# Create a new column called "new_column" that is an exact copy of "old_column"
+df$new_column <- df$old_column
+
+# Remove "old_column"
+df$old_column <- NULL
+```
+
+11. Getting a bit more abstract, we can use `colnames` with `grepl` to use `regex` pattern matching:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[grepl("old", colnames(df))] <- "new_column"
+```
+
+12. ...we can also use `names` with #11:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[grepl("old", names(df))] <- "new_column"
+```
+
+13. We can swap the first `names` with `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[grepl("old", names(df))] <- "new_column"
+```
+
+14. Flip it and reverse it...
+
+![](images/missyelliot.jpg){width=600px}
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[grepl("old", colnames(df))] <- "new_column"
+```
+
+15. Using `grep` + `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[grep("old", names(df))] <- "new_column"
+```
+
+16. Using `grep` + `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[grep("old", colnames(df))] <- "new_column"
+```
+
+17. Using `grep` + `names` then `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df)[grep("old", colnames(df))] <- "new_column"
+```
+
+18. Using `grep` + `colnames` then `names`:
+
+- (I am intentionally stopping myself from more Missy Elliott references.)
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df)[grep("old", names(df))] <- "new_column"
+```
+
+19. Using `sub` + `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- sub("old_column", "new_column", colnames(df))
+```
+
+20. Using `sub` + `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- sub("old_column", "new_column", names(df))
+```
+
+21. Using `sub` + `names` then `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- sub("old_column", "new_column", colnames(df))
+```
+
+22. Using `sub` + `colnames` then `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- sub("old_column", "new_column", names(df))
+```
+
+23. Using `gsub` + `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- gsub("old_column", "new_column", colnames(df))
+```
+
+24. Using `gsub` + `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- gsub("old_column", "new_column", names(df))
+```
+
+25. Using `gsub` + `names` then `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- gsub("old_column", "new_column", colnames(df))
+```
+
+26. Using `gsub` + `colnames` then `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- gsub("old_column", "new_column", names(df))
+```
+
+27. Using a `for loop` with `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+for (i in paste0("new_column")){
+  colnames(df) <- i
+}
+```
+
+28. Using a `for loop` with `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+for (i in paste0("new_column")){
+  names(df) <- i
+}
+```
+
+
+29. Using `setNames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- setNames(df, "new_column")
+```
+
+30. Using `eval` and `parse` with `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+eval(parse(text = 'names(df) <- "new_column"'))
+```
+
+31. Using `eval` and `parse` with `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+eval(parse(text = 'colnames(df) <- "new_column"'))
+```
+
+32. Using `setNames` and `replace`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+setNames(df, replace(names(df), names(df) == 'old_column', 'new_column'))
+```
+
+33. Using `transform`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- transform(df, new_column = old_column, old_column = NULL)
+```
+
+# tidyverse
+
+You can learn more about the `tidyverse` [here](https://www.tidyverse.org/)
+
+34. Using `rename` without a `%>%`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- rename(df, "new_column" = "old_column")
+```
+
+35. Using `rename` with a `%>%`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  rename("new_column" = "old_column")
+```
+
+36. Renaming in a `select` call without a `%>%`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- select(df, "new_column" = "old_column")
+```
+
+37. Renaming in a `select` call with a `%>%`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  select("new_column" = "old_column")
+```
+
+38. Using `mutate` to create a new column and then removing the `old_column`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  mutate(new_column = old_column) %>% 
+  select(-old_column)
+```
+
+39. Using `mutate` to create a new column and then removing the `old_column` without pipes (`%>%`):
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- mutate(df, new_column = old_column)
+df$old_column <- NULL
+```
+
+40. Using `purrr` + `setnames` and `str_replace_*`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>%
+    set_names(~(.) %>%
+                  str_replace_all("old_column", "new_column"))
+```
+
+41. Using a character vector and `rename`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+rename_vec <- c("new_column" = "old_column")
+
+df <- df %>% 
+  rename(rename_vec)
+```
+
+42. Using `str_replace` + `names`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+names(df) <- str_replace(names(df), "old_column", "new_column")
+```
+
+43. Using `str_replace` + `colnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+colnames(df) <- str_replace(colnames(df), "old_column", "new_column")
+```
+
+44. Using `starts_with`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  select("new_column" = starts_with("old"))
+```
+
+45. Using `ends_with`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  select("new_column" = ends_with("column"))
+```
+
+46. Using `rename_with` + `gsub`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  rename_with(~gsub("old_", "new_", .x))
+```
+
+47. Using `rename_with` + `sub`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+  rename_with(~sub("old_", "new_", .x))
+```
+
+48. Using `rename_with` and `str_replace`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+     rename_with(~str_replace("new_column", "old_column", .x))
+```
+
+49. `Rename` with an index:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- df %>% 
+     rename("new_column" = 1)
+```
+
+**A note**: I'm going to stop interchanging `names` and `colnames` as I did previously. I didn't have any idea how many ways there would be to rename columns when I started this, but it's becoming evident that there are likely hundreds of ways if we count every nuance.
+
+I'm also throwing in the towel on the deprecated/superseded `rename_at` / `rename_if` / `rename_all` functions, since they have been replaced by `select` and `rename_with`. 
+
+# data.table
+
+`data.table` is really fast, and you can... do cool stuff with it. I am a `data.table` n00b. You can learn more about `data.table` [here](https://github.com/Rdatatable/data.table). 
+
+50. Using `data.table::setnames`:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- as.data.table(df, keep.rownames = FALSE)
+setnames(df, "old_column", "new_column")
+```
+
+
+51. Using `data.table::setnames` with an index:
+
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+df <- as.data.table(df, keep.rownames = FALSE)
+setnames(df, 1, "new_column")
+```
+
+52. Refactoring the previous `data.table` example (I have no idea what I'm doing `r emo::ji("sweat_smile")`) 
+```{r message=FALSE, warning=FALSE, eval = FALSE}
+as.data.table(df)[, .(new_column = old_column)]
+```
+
+# What's in a (re)name?
+
+`R` is an amazing language and there are endless things you can do. Coming from SPSS, I was previously familiar with `rename` and just left it at that. I had some grand ideas of microbenchmarking each of these methods to find the fastest renaming solution, and maybe that will happen someday if I get an espresso machine or something. `r emo::ji("coffee")`
+
+Our team at work will be transitioning from SPSS to R, and this has given me a lot to think about, specifically about the importance of having standardized code, but also having some built-in flexibility for each person's coding style. I'm looking forward to another version of this post, where I focus on a task that is slightly more complicated. Maybe iterating through a `data.frame` column/rowwise? 
+
+I also acknowledge my severe lack of `data.table` knowledge. I don't work with big data, and am not in a position to need to make production-level code performant. `tidyverse` code is way more intuitive for me, and the community is really supportive and engaged, so I will likely leave `data.table` off the  ...table for a while.
+
+... I'll see myself out. 
+
+# Cats
+
+![Mango](images/IMG-4026.JPG)
+
+![Phil](images/IMG-4664.JPG)
+
+# References
+
+- https://stackoverflow.com/questions/7531868/how-to-rename-a-single-column-in-a-data-frame
+- https://stackoverflow.com/questions/35084427/how-to-change-column-names-in-dataframe-in-the-loop
+- https://stackoverflow.com/questions/50687741/how-to-rename-column-headers-in-r
+- https://stackoverflow.com/questions/46616591/rename-multiple-dataframe-columns-using-purrr
+- https://stackoverflow.com/questions/20987295/rename-multiple-columns-by-names
+- https://stackoverflow.com/questions/9283171/rename-multiple-dataframe-columns-referenced-by-current-names/9292258
+- https://stackoverflow.com/questions/53168572/how-to-rename-specific-variable-of-a-data-frame-with-setnames

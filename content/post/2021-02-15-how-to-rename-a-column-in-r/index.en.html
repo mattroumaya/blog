@@ -1,0 +1,688 @@
+---
+title: 52 Different Ways to Rename a Column in R
+author: Matt Roumaya
+date: '2021-02-16'
+slug: 52-different-ways-to-rename-a-column-in-r
+categories:
+  - R
+  - data cleaning
+  - column
+  - rename
+  - dplyr
+  - base r
+  - data.table
+tags:
+  - r
+  - dplyr
+  - data.table
+  - data cleaning
+  - R
+  - cats
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-02-15T18:04:48-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>I haven’t posted for a while, and came across a tweet from Angie Jones that I really related to.</p>
+<p>{{% tweet 1361026673290797060 %}}</p>
+<p>Not that my previous posts were intellectual thinkpieces, but I thought that I had to write about something novel or innovative to provide any level of value.</p>
+<p>When I first starting using <code>R</code>, my code was a mash-up of <code>base R</code>, <code>dplyr</code>, and <code>data.table</code>. I would reference a column by index and then by name. It was hard for me to follow, and I cringe at the idea that I sent some of this old code to colleagues.</p>
+<p>I was trying to think of how many ways there are to do simple data cleaning tasks in <code>R</code>, and thought it would be fun to explore.</p>
+<p>The only task accomplished in the rest of this post will be renaming a column, and some pics of my cats.</p>
+<ul>
+<li>Original column name: <code>old_column</code></li>
+<li>Renamed column name: <code>new_column</code></li>
+</ul>
+<p>Every example will include a <code>data.frame</code> that is called <code>df</code> and will contain one column named <code>old_column</code> that we will rename as <code>new_column</code>:</p>
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#uwlnhpnoqk .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#uwlnhpnoqk .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#uwlnhpnoqk .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#uwlnhpnoqk .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#uwlnhpnoqk .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#uwlnhpnoqk .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#uwlnhpnoqk .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#uwlnhpnoqk .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#uwlnhpnoqk .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#uwlnhpnoqk .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#uwlnhpnoqk .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#uwlnhpnoqk .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#uwlnhpnoqk .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#uwlnhpnoqk .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uwlnhpnoqk .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uwlnhpnoqk .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#uwlnhpnoqk .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#uwlnhpnoqk .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#uwlnhpnoqk .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#uwlnhpnoqk .gt_left {
+  text-align: left;
+}
+
+#uwlnhpnoqk .gt_center {
+  text-align: center;
+}
+
+#uwlnhpnoqk .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#uwlnhpnoqk .gt_font_normal {
+  font-weight: normal;
+}
+
+#uwlnhpnoqk .gt_font_bold {
+  font-weight: bold;
+}
+
+#uwlnhpnoqk .gt_font_italic {
+  font-style: italic;
+}
+
+#uwlnhpnoqk .gt_super {
+  font-size: 65%;
+}
+
+#uwlnhpnoqk .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="uwlnhpnoqk" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">old_column</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_left">Here</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">is</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">a</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_left">column</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+<div id="using-base-r" class="section level1">
+<h1>Using <code>Base R</code></h1>
+<p>The following examples will only use <code>base R</code>, meaning no additional packages will be required to run this code.</p>
+<ol style="list-style-type: decimal">
+<li>Call <code>colnames</code> on <code>df</code> and index the first column.</li>
+</ol>
+<pre class="r"><code>colnames(df)[1] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Call <code>names</code> on <code>df</code> and index the first column.</li>
+</ol>
+<pre class="r"><code>names(df)[1] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Call <code>colnames</code> on <code>df</code> and subset the first column also using <code>colnames</code>.</li>
+</ol>
+<pre class="r"><code>colnames(df)[colnames(df) == &quot;old_column&quot;] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Call <code>names</code> on <code>df</code> and subset the first column also using <code>names</code>.</li>
+</ol>
+<pre class="r"><code>names(df)[names(df) == &quot;old_column&quot;] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="5" style="list-style-type: decimal">
+<li>Call <code>colnames</code> on <code>df</code> and subset the first column using <code>names</code>.</li>
+</ol>
+<pre class="r"><code>colnames(df)[names(df) == &quot;old_column&quot;] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>Call <code>names</code> on <code>df</code> and subset the first column using <code>colnames</code>.</li>
+</ol>
+<pre class="r"><code>names(df)[colnames(df) == &quot;old_column&quot;] &lt;- &#39;new_column&#39;</code></pre>
+<ol start="7" style="list-style-type: decimal">
+<li>Call <code>colnames</code> on <code>df</code> and subset using logical indexing <code>which</code>. This returns the index of the column that is equal to “old_column”.</li>
+</ol>
+<pre class="r"><code>colnames(df)[which(colnames(df) == &quot;old_column&quot;)] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="8" style="list-style-type: decimal">
+<li>Since <code>df</code> only has one column, we can also call <code>names</code> on <code>df</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- &quot;new_column&quot;</code></pre>
+<ol start="9" style="list-style-type: decimal">
+<li>…or <code>colnames</code> on <code>df</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- &quot;new_column&quot;</code></pre>
+<ol start="10" style="list-style-type: decimal">
+<li>We can also use a different, and less efficient approach. Instead of renaming the column value, we can create a new column that is identical to <code>old_column</code> and name it <code>new_column</code>. Then we can remove <code>old_column</code> from our <code>df</code>:</li>
+</ol>
+<pre class="r"><code># Create a new column called &quot;new_column&quot; that is an exact copy of &quot;old_column&quot;
+df$new_column &lt;- df$old_column
+
+# Remove &quot;old_column&quot;
+df$old_column &lt;- NULL</code></pre>
+<ol start="11" style="list-style-type: decimal">
+<li>Getting a bit more abstract, we can use <code>colnames</code> with <code>grepl</code> to use <code>regex</code> pattern matching:</li>
+</ol>
+<pre class="r"><code>colnames(df)[grepl(&quot;old&quot;, colnames(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="12" style="list-style-type: decimal">
+<li>…we can also use <code>names</code> with #11:</li>
+</ol>
+<pre class="r"><code>names(df)[grepl(&quot;old&quot;, names(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="13" style="list-style-type: decimal">
+<li>We can swap the first <code>names</code> with <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df)[grepl(&quot;old&quot;, names(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="14" style="list-style-type: decimal">
+<li>Flip it and reverse it…</li>
+</ol>
+<p><img src="images/missyelliot.jpg" width="600" /></p>
+<pre class="r"><code>names(df)[grepl(&quot;old&quot;, colnames(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="15" style="list-style-type: decimal">
+<li>Using <code>grep</code> + <code>names</code>:</li>
+</ol>
+<pre class="r"><code>names(df)[grep(&quot;old&quot;, names(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="16" style="list-style-type: decimal">
+<li>Using <code>grep</code> + <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df)[grep(&quot;old&quot;, colnames(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="17" style="list-style-type: decimal">
+<li>Using <code>grep</code> + <code>names</code> then <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>names(df)[grep(&quot;old&quot;, colnames(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="18" style="list-style-type: decimal">
+<li>Using <code>grep</code> + <code>colnames</code> then <code>names</code>:</li>
+</ol>
+<ul>
+<li>(I am intentionally stopping myself from more Missy Elliott references.)</li>
+</ul>
+<pre class="r"><code>colnames(df)[grep(&quot;old&quot;, names(df))] &lt;- &quot;new_column&quot;</code></pre>
+<ol start="19" style="list-style-type: decimal">
+<li>Using <code>sub</code> + <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- sub(&quot;old_column&quot;, &quot;new_column&quot;, colnames(df))</code></pre>
+<ol start="20" style="list-style-type: decimal">
+<li>Using <code>sub</code> + <code>names</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- sub(&quot;old_column&quot;, &quot;new_column&quot;, names(df))</code></pre>
+<ol start="21" style="list-style-type: decimal">
+<li>Using <code>sub</code> + <code>names</code> then <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- sub(&quot;old_column&quot;, &quot;new_column&quot;, colnames(df))</code></pre>
+<ol start="22" style="list-style-type: decimal">
+<li>Using <code>sub</code> + <code>colnames</code> then <code>names</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- sub(&quot;old_column&quot;, &quot;new_column&quot;, names(df))</code></pre>
+<ol start="23" style="list-style-type: decimal">
+<li>Using <code>gsub</code> + <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- gsub(&quot;old_column&quot;, &quot;new_column&quot;, colnames(df))</code></pre>
+<ol start="24" style="list-style-type: decimal">
+<li>Using <code>gsub</code> + <code>names</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- gsub(&quot;old_column&quot;, &quot;new_column&quot;, names(df))</code></pre>
+<ol start="25" style="list-style-type: decimal">
+<li>Using <code>gsub</code> + <code>names</code> then <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- gsub(&quot;old_column&quot;, &quot;new_column&quot;, colnames(df))</code></pre>
+<ol start="26" style="list-style-type: decimal">
+<li>Using <code>gsub</code> + <code>colnames</code> then <code>names</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- gsub(&quot;old_column&quot;, &quot;new_column&quot;, names(df))</code></pre>
+<ol start="27" style="list-style-type: decimal">
+<li>Using a <code>for loop</code> with <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>for (i in paste0(&quot;new_column&quot;)){
+  colnames(df) &lt;- i
+}</code></pre>
+<ol start="28" style="list-style-type: decimal">
+<li>Using a <code>for loop</code> with <code>names</code>:</li>
+</ol>
+<pre class="r"><code>for (i in paste0(&quot;new_column&quot;)){
+  names(df) &lt;- i
+}</code></pre>
+<ol start="29" style="list-style-type: decimal">
+<li>Using <code>setNames</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- setNames(df, &quot;new_column&quot;)</code></pre>
+<ol start="30" style="list-style-type: decimal">
+<li>Using <code>eval</code> and <code>parse</code> with <code>names</code>:</li>
+</ol>
+<pre class="r"><code>eval(parse(text = &#39;names(df) &lt;- &quot;new_column&quot;&#39;))</code></pre>
+<ol start="31" style="list-style-type: decimal">
+<li>Using <code>eval</code> and <code>parse</code> with <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>eval(parse(text = &#39;colnames(df) &lt;- &quot;new_column&quot;&#39;))</code></pre>
+<ol start="32" style="list-style-type: decimal">
+<li>Using <code>setNames</code> and <code>replace</code>:</li>
+</ol>
+<pre class="r"><code>setNames(df, replace(names(df), names(df) == &#39;old_column&#39;, &#39;new_column&#39;))</code></pre>
+<ol start="33" style="list-style-type: decimal">
+<li>Using <code>transform</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- transform(df, new_column = old_column, old_column = NULL)</code></pre>
+</div>
+<div id="tidyverse" class="section level1">
+<h1>tidyverse</h1>
+<p>You can learn more about the <code>tidyverse</code> <a href="https://www.tidyverse.org/">here</a></p>
+<ol start="34" style="list-style-type: decimal">
+<li>Using <code>rename</code> without a <code>%&gt;%</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- rename(df, &quot;new_column&quot; = &quot;old_column&quot;)</code></pre>
+<ol start="35" style="list-style-type: decimal">
+<li>Using <code>rename</code> with a <code>%&gt;%</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  rename(&quot;new_column&quot; = &quot;old_column&quot;)</code></pre>
+<ol start="36" style="list-style-type: decimal">
+<li>Renaming in a <code>select</code> call without a <code>%&gt;%</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- select(df, &quot;new_column&quot; = &quot;old_column&quot;)</code></pre>
+<ol start="37" style="list-style-type: decimal">
+<li>Renaming in a <code>select</code> call with a <code>%&gt;%</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  select(&quot;new_column&quot; = &quot;old_column&quot;)</code></pre>
+<ol start="38" style="list-style-type: decimal">
+<li>Using <code>mutate</code> to create a new column and then removing the <code>old_column</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  mutate(new_column = old_column) %&gt;% 
+  select(-old_column)</code></pre>
+<ol start="39" style="list-style-type: decimal">
+<li>Using <code>mutate</code> to create a new column and then removing the <code>old_column</code> without pipes (<code>%&gt;%</code>):</li>
+</ol>
+<pre class="r"><code>df &lt;- mutate(df, new_column = old_column)
+df$old_column &lt;- NULL</code></pre>
+<ol start="40" style="list-style-type: decimal">
+<li>Using <code>purrr</code> + <code>setnames</code> and <code>str_replace_*</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;%
+    set_names(~(.) %&gt;%
+                  str_replace_all(&quot;old_column&quot;, &quot;new_column&quot;))</code></pre>
+<ol start="41" style="list-style-type: decimal">
+<li>Using a character vector and <code>rename</code>:</li>
+</ol>
+<pre class="r"><code>rename_vec &lt;- c(&quot;new_column&quot; = &quot;old_column&quot;)
+
+df &lt;- df %&gt;% 
+  rename(rename_vec)</code></pre>
+<ol start="42" style="list-style-type: decimal">
+<li>Using <code>str_replace</code> + <code>names</code>:</li>
+</ol>
+<pre class="r"><code>names(df) &lt;- str_replace(names(df), &quot;old_column&quot;, &quot;new_column&quot;)</code></pre>
+<ol start="43" style="list-style-type: decimal">
+<li>Using <code>str_replace</code> + <code>colnames</code>:</li>
+</ol>
+<pre class="r"><code>colnames(df) &lt;- str_replace(colnames(df), &quot;old_column&quot;, &quot;new_column&quot;)</code></pre>
+<ol start="44" style="list-style-type: decimal">
+<li>Using <code>starts_with</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  select(&quot;new_column&quot; = starts_with(&quot;old&quot;))</code></pre>
+<ol start="45" style="list-style-type: decimal">
+<li>Using <code>ends_with</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  select(&quot;new_column&quot; = ends_with(&quot;column&quot;))</code></pre>
+<ol start="46" style="list-style-type: decimal">
+<li>Using <code>rename_with</code> + <code>gsub</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  rename_with(~gsub(&quot;old_&quot;, &quot;new_&quot;, .x))</code></pre>
+<ol start="47" style="list-style-type: decimal">
+<li>Using <code>rename_with</code> + <code>sub</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+  rename_with(~sub(&quot;old_&quot;, &quot;new_&quot;, .x))</code></pre>
+<ol start="48" style="list-style-type: decimal">
+<li>Using <code>rename_with</code> and <code>str_replace</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+     rename_with(~str_replace(&quot;new_column&quot;, &quot;old_column&quot;, .x))</code></pre>
+<ol start="49" style="list-style-type: decimal">
+<li><code>Rename</code> with an index:</li>
+</ol>
+<pre class="r"><code>df &lt;- df %&gt;% 
+     rename(&quot;new_column&quot; = 1)</code></pre>
+<p><strong>A note</strong>: I’m going to stop interchanging <code>names</code> and <code>colnames</code> as I did previously. I didn’t have any idea how many ways there would be to rename columns when I started this, but it’s becoming evident that there are likely hundreds of ways if we count every nuance.</p>
+<p>I’m also throwing in the towel on the deprecated/superseded <code>rename_at</code> / <code>rename_if</code> / <code>rename_all</code> functions, since they have been replaced by <code>select</code> and <code>rename_with</code>.</p>
+</div>
+<div id="data.table" class="section level1">
+<h1>data.table</h1>
+<p><code>data.table</code> is really fast, and you can… do cool stuff with it. I am a <code>data.table</code> n00b. You can learn more about <code>data.table</code> <a href="https://github.com/Rdatatable/data.table">here</a>.</p>
+<ol start="50" style="list-style-type: decimal">
+<li>Using <code>data.table::setnames</code>:</li>
+</ol>
+<pre class="r"><code>df &lt;- as.data.table(df, keep.rownames = FALSE)
+setnames(df, &quot;old_column&quot;, &quot;new_column&quot;)</code></pre>
+<ol start="51" style="list-style-type: decimal">
+<li>Using <code>data.table::setnames</code> with an index:</li>
+</ol>
+<pre class="r"><code>df &lt;- as.data.table(df, keep.rownames = FALSE)
+setnames(df, 1, &quot;new_column&quot;)</code></pre>
+<ol start="52" style="list-style-type: decimal">
+<li>Refactoring the previous <code>data.table</code> example (I have no idea what I’m doing 😅)</li>
+</ol>
+<pre class="r"><code>as.data.table(df)[, .(new_column = old_column)]</code></pre>
+</div>
+<div id="whats-in-a-rename" class="section level1">
+<h1>What’s in a (re)name?</h1>
+<p><code>R</code> is an amazing language and there are endless things you can do. Coming from SPSS, I was previously familiar with <code>rename</code> and just left it at that. I had some grand ideas of microbenchmarking each of these methods to find the fastest renaming solution, and maybe that will happen someday if I get an espresso machine or something. ☕</p>
+<p>Our team at work will be transitioning from SPSS to R, and this has given me a lot to think about, specifically about the importance of having standardized code, but also having some built-in flexibility for each person’s coding style. I’m looking forward to another version of this post, where I focus on a task that is slightly more complicated. Maybe iterating through a <code>data.frame</code> column/rowwise?</p>
+<p>I also acknowledge my severe lack of <code>data.table</code> knowledge. I don’t work with big data, and am not in a position to need to make production-level code performant. <code>tidyverse</code> code is way more intuitive for me, and the community is really supportive and engaged, so I will likely leave <code>data.table</code> off the …table for a while.</p>
+<p>… I’ll see myself out.</p>
+</div>
+<div id="cats" class="section level1">
+<h1>Cats</h1>
+<div class="figure">
+<img src="images/IMG-4026.JPG" alt="" />
+<p class="caption">Mango</p>
+</div>
+<div class="figure">
+<img src="images/IMG-4664.JPG" alt="" />
+<p class="caption">Phil</p>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li><a href="https://stackoverflow.com/questions/7531868/how-to-rename-a-single-column-in-a-data-frame" class="uri">https://stackoverflow.com/questions/7531868/how-to-rename-a-single-column-in-a-data-frame</a></li>
+<li><a href="https://stackoverflow.com/questions/35084427/how-to-change-column-names-in-dataframe-in-the-loop" class="uri">https://stackoverflow.com/questions/35084427/how-to-change-column-names-in-dataframe-in-the-loop</a></li>
+<li><a href="https://stackoverflow.com/questions/50687741/how-to-rename-column-headers-in-r" class="uri">https://stackoverflow.com/questions/50687741/how-to-rename-column-headers-in-r</a></li>
+<li><a href="https://stackoverflow.com/questions/46616591/rename-multiple-dataframe-columns-using-purrr" class="uri">https://stackoverflow.com/questions/46616591/rename-multiple-dataframe-columns-using-purrr</a></li>
+<li><a href="https://stackoverflow.com/questions/20987295/rename-multiple-columns-by-names" class="uri">https://stackoverflow.com/questions/20987295/rename-multiple-columns-by-names</a></li>
+<li><a href="https://stackoverflow.com/questions/9283171/rename-multiple-dataframe-columns-referenced-by-current-names/9292258" class="uri">https://stackoverflow.com/questions/9283171/rename-multiple-dataframe-columns-referenced-by-current-names/9292258</a></li>
+<li><a href="https://stackoverflow.com/questions/53168572/how-to-rename-specific-variable-of-a-data-frame-with-setnames" class="uri">https://stackoverflow.com/questions/53168572/how-to-rename-specific-variable-of-a-data-frame-with-setnames</a></li>
+</ul>
+</div>
