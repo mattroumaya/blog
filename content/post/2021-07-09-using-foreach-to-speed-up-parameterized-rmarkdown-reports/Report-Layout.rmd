@@ -1,0 +1,31 @@
+---
+title: "Iris Demo"
+output: pdf_document
+params: 
+  species: ""
+---
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library(tidyverse)
+
+df <- iris %>% 
+  filter(Species == params$species)
+```
+
+Report for the species: `r params$species`
+
+```{r main}
+df %>% 
+  filter(Species == "setosa") %>% 
+  ggplot(aes(Sepal.Width))+
+  geom_histogram() +
+  ggtitle(paste0("Distribution of Sepal.Length for ", params$species))
+
+```
+
