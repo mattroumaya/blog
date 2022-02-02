@@ -1,13 +1,14 @@
 ---
 authors:
 - admin
-bio: Data Analyst in Philadelphia, PA
+bio: Informatics Application Developer in Philadelphia, PA
 email: ""
 interests:
-- R
-- Data Analysis & Visualization
-- Survey Design & Research
-- Coffee, death metal, vegan baking, sometimes running
+- All things R
+- Heavy music
+- Vegan baking
+- Sometimes running
+- Strong coffee
 social:
 - icon: envelope
   icon_pack: fas
@@ -25,5 +26,5 @@ user_groups:
 - Visitors
 ---
 
-I'm a Data Analyst at the National Board of Medical Examiners.  My goal is to share trivial and occasionally useful R content, learn from and connect with others in the data community, and contribute to open source. I live in Philadelphia with my amazing wife Molly, our two cats, Mango and Phil, and our dog Donut.
+I'm an Informatics Application Developer @ [Atorus](https://www.atorusresearch.com/).  My goal is to share trivial and occasionally useful R content, learn from and connect with others in the data community, and contribute to open source. I live in Philadelphia with my amazing wife Molly, our two cats, Mango and Phil, and our dog Donut.
 
