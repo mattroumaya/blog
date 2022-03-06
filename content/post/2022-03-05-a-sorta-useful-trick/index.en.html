@@ -1,0 +1,37 @@
+---
+title: A Sort(a) Useful Trick
+author: Matt Roumaya
+date: '2022-03-05'
+slug: a-sorta-useful-trick
+categories: []
+tags:
+  - R
+  - sort
+  - tip
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-03-05T20:15:47-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>My blog is depressingly stagnant and I want to make more of an effort to just post things without putting too much thought into it.</p>
+<p>For that reason, this post will be <strong>extremely</strong> brief, and will just show a useful trick that uses <code>dput()</code>, which was unfamiliar to me until I started looking for ways to contribute to the <code>R</code> tag on <a href="https://stackoverflow.com/users/12967938/matt">stackoverflow</a>.</p>
+<p>Here’s the sort(a)-scenario:</p>
+<p>Let’s say you have a vector that’s built into your code that you’d like to sort. I’ve been stuck on an idea for a blog post about <a href="https://www.youtube.com/watch?v=NwW0q65VIas">Saves the Day</a>, and have a vector that contains body parts.</p>
+<pre class="r"><code>parts &lt;- c(&quot;neck&quot;, &quot;collarbone&quot;, &quot;ankle&quot;, &quot;thigh&quot;, &quot;eyelid&quot;)</code></pre>
+<p>I like order in the world, and want to build this vector alphabetically, which will also make it easier to read as it’s presented in a blog post.</p>
+<p>Instead of doing your A-B-C’s and manually rewriting the vector, just use <code>dput()</code>!</p>
+<pre class="r"><code>dput(sort(parts))</code></pre>
+<pre><code>## c(&quot;ankle&quot;, &quot;collarbone&quot;, &quot;eyelid&quot;, &quot;neck&quot;, &quot;thigh&quot;)</code></pre>
+<p>Easy!</p>
+<p>Now we can just copy/paste and move on with our lives!</p>
+<pre class="r"><code>ordered_parts &lt;- c(&quot;ankle&quot;, &quot;collarbone&quot;, &quot;eyelid&quot;, &quot;neck&quot;, &quot;thigh&quot;)</code></pre>
