@@ -1,7 +1,7 @@
 ---
 authors:
 - admin
-bio: Informatics Application Developer in Philadelphia, PA
+bio: Data Solutions Engineer in Philadelphia, PA
 email: ""
 interests:
 - All things R
@@ -26,5 +26,5 @@ user_groups:
 - Visitors
 ---
 
-I'm an Informatics Application Developer @ [Atorus](https://www.atorusresearch.com/).  My goal is to share trivial and occasionally useful R content, learn from and connect with others in the data community, and contribute to open source. I live in Philadelphia with my amazing wife Molly, our two cats, Mango and Phil, and our dog Donut.
+I'm a Data Solutions Engineer @ [Atorus](https://www.atorusresearch.com/).  My goal is to share trivial and occasionally useful R content, learn from and connect with others in the data community, and contribute to open source. I live in Philadelphia with my amazing wife Molly, our two cats, Mango and Phil, and our dog Donut.
 
